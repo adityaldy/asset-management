@@ -3,6 +3,10 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import { db } from "./models/index.js";
+import { errorHandler, notFoundHandler } from "./middleware/ErrorHandler.js";
+
+// Import Routes
+import AuthRoute from "./routes/AuthRoute.js";
 
 dotenv.config();
 
@@ -26,6 +30,15 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
+
+// API Routes
+app.use('/api/auth', AuthRoute);
+
+// 404 Handler
+app.use(notFoundHandler);
+
+// Global Error Handler
+app.use(errorHandler);
 
 // Database connection and sync
 const startServer = async () => {
