@@ -9,6 +9,10 @@ import { QueryTypes } from "sequelize";
 export const processQuery = async (req, res) => {
     try {
         const { message } = req.body;
+        
+        console.log("=== Chat Query Request ===");
+        console.log("Message:", message);
+        console.log("GEMINI_API_KEY exists:", !!process.env.GEMINI_API_KEY);
 
         if (!message || typeof message !== 'string' || message.trim().length === 0) {
             return res.status(400).json({
@@ -25,7 +29,9 @@ export const processQuery = async (req, res) => {
         }
 
         // Generate AI response
+        console.log("Calling generateChatResponse...");
         const aiResponse = await generateChatResponse(message.trim());
+        console.log("AI Response type:", aiResponse.type);
 
         // Handle different response types
         switch (aiResponse.type) {
@@ -94,7 +100,10 @@ export const processQuery = async (req, res) => {
                 });
         }
     } catch (error) {
-        console.error("Chat controller error:", error);
+        console.error("=== Chat Controller Error ===");
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        console.error("Full error:", error);
         
         // Handle specific Gemini API errors
         if (error.message?.includes("GEMINI_API_KEY")) {

@@ -1,10 +1,19 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import dotenv from "dotenv";
 
-dotenv.config();
+// Initialize Gemini AI - will be initialized lazily
+let genAI = null;
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const getGenAI = () => {
+    if (!genAI) {
+        const apiKey = process.env.GEMINI_API_KEY;
+        console.log("Initializing Gemini with API key:", apiKey ? `${apiKey.substring(0, 10)}...` : "NOT SET");
+        if (!apiKey) {
+            throw new Error("GEMINI_API_KEY is not configured");
+        }
+        genAI = new GoogleGenerativeAI(apiKey);
+    }
+    return genAI;
+};
 
 // Database schema context for Gemini
 const DATABASE_SCHEMA = `
@@ -127,11 +136,15 @@ Jika pertanyaan tidak valid atau di luar konteks:
  */
 export const generateChatResponse = async (userMessage) => {
     try {
-        if (!process.env.GEMINI_API_KEY) {
+        const apiKey = process.env.GEMINI_API_KEY;
+        console.log("GEMINI_API_KEY available:", !!apiKey);
+        
+        if (!apiKey) {
             throw new Error("GEMINI_API_KEY is not configured");
         }
 
-        const model = genAI.getGenerativeModel({ 
+        const ai = getGenAI();
+        const model = ai.getGenerativeModel({ 
             model: "gemini-2.0-flash",
             systemInstruction: SYSTEM_INSTRUCTION
         });
@@ -144,9 +157,11 @@ Pertanyaan User: ${userMessage}
 Berikan response dalam format JSON sesuai aturan yang telah ditentukan.
 `;
 
+        console.log("Sending request to Gemini...");
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
+        console.log("Gemini response received:", text.substring(0, 100) + "...");
 
         // Parse JSON response
         try {
