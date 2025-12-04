@@ -16,6 +16,7 @@ import AssetRoute from "./routes/AssetRoute.js";
 import TransactionRoute from "./routes/TransactionRoute.js";
 import DashboardRoute from "./routes/DashboardRoute.js";
 import ReportRoute from "./routes/ReportRoute.js";
+import ChatRoute from "./routes/ChatRoute.js";
 
 dotenv.config();
 
@@ -80,6 +81,7 @@ app.use('/api/assets', AssetRoute);
 app.use('/api/transactions', TransactionRoute);
 app.use('/api/dashboard', DashboardRoute);
 app.use('/api/reports', ReportRoute);
+app.use('/api/chat', ChatRoute);
 
 // 404 Handler
 app.use(notFoundHandler);

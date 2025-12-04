@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import { ChatWidget } from '../chat';
 
 const MainLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,6 +30,9 @@ const MainLayout = () => {
                     <Outlet />
                 </main>
             </div>
+
+            {/* AI Chat Widget */}
+            <ChatWidget />
         </div>
     );
 };
