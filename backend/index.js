@@ -7,6 +7,9 @@ import { errorHandler, notFoundHandler } from "./middleware/ErrorHandler.js";
 
 // Import Routes
 import AuthRoute from "./routes/AuthRoute.js";
+import CategoryRoute from "./routes/CategoryRoute.js";
+import LocationRoute from "./routes/LocationRoute.js";
+import UserRoute from "./routes/UserRoute.js";
 
 dotenv.config();
 
@@ -33,6 +36,9 @@ app.get('/api/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', AuthRoute);
+app.use('/api/categories', CategoryRoute);
+app.use('/api/locations', LocationRoute);
+app.use('/api/users', UserRoute);
 
 // 404 Handler
 app.use(notFoundHandler);

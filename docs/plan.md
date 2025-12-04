@@ -10,11 +10,11 @@ Dokumen ini berisi rencana implementasi detail berdasarkan "Perancangan Aplikasi
 
 | Komponen | Progress | Status |
 |----------|----------|--------|
-| **Backend** | 63/126 tasks | 🟡 In Progress |
+| **Backend** | 85/126 tasks | 🟡 In Progress |
 | **Frontend** | 0/98 tasks | 🔴 Not Started |
 | **Testing** | 0/17 tasks | 🔴 Not Started |
 | **Documentation** | 0/10 tasks | 🔴 Not Started |
-| **TOTAL** | **63/251 tasks** | **25%** |
+| **TOTAL** | **85/251 tasks** | **34%** |
 
 ### **Progress per Fase**
 
@@ -23,7 +23,7 @@ Dokumen ini berisi rencana implementasi detail berdasarkan "Perancangan Aplikasi
 | 0 | Setup & Konfigurasi | 17 | 17 | ██████████ 100% | 🟢 |
 | 1 | Backend - Models | 29 | 29 | ██████████ 100% | 🟢 |
 | 2 | Backend - Auth | 17 | 17 | ██████████ 100% | 🟢 |
-| 3 | Backend - Master Data | 22 | 0 | ░░░░░░░░░░ 0% | 🔴 |
+| 3 | Backend - Master Data | 22 | 22 | ██████████ 100% | 🟢 |
 | 4 | Backend - Asset Mgmt | 18 | 0 | ░░░░░░░░░░ 0% | 🔴 |
 | 5 | Backend - Transactions | 23 | 0 | ░░░░░░░░░░ 0% | 🔴 |
 | 6 | Backend - Dashboard | 12 | 0 | ░░░░░░░░░░ 0% | 🔴 |
@@ -48,8 +48,8 @@ Dokumen ini berisi rencana implementasi detail berdasarkan "Perancangan Aplikasi
 - 🔵 Under Review
 
 ### **Current Sprint**
-- **Active Fase**: Fase 2 (Completed) → Fase 3 (Next)
-- **Current Task**: Authentication & Authorization completed
+- **Active Fase**: Fase 3 (Completed) → Fase 4 (Next)
+- **Current Task**: Master Data Management completed
 - **Blockers**: None
 - **Last Updated**: 2024-12-04
 
@@ -387,60 +387,60 @@ it-asset-management/
 ## **Fase 3: Backend - Master Data Management**
 
 ### 3.1 Category Controller
-- [ ] Buat file `backend/controllers/CategoryController.js`
-- [ ] Implementasi fungsi CRUD:
-  - [ ] `getAllCategories` - List semua kategori
-  - [ ] `getCategoryById` - Detail kategori
-  - [ ] `createCategory` - Buat kategori baru
-  - [ ] `updateCategory` - Update kategori
-  - [ ] `deleteCategory` - Hapus kategori (soft delete/check usage)
+- [x] Buat file `backend/controllers/CategoryController.js`
+- [x] Implementasi fungsi CRUD:
+  - [x] `getAllCategories` - List semua kategori
+  - [x] `getCategoryById` - Detail kategori
+  - [x] `createCategory` - Buat kategori baru
+  - [x] `updateCategory` - Update kategori
+  - [x] `deleteCategory` - Hapus kategori (soft delete/check usage)
 
 ### 3.2 Category Routes
-- [ ] Buat file `backend/routes/CategoryRoute.js`
-- [ ] Definisikan endpoints:
-  - [ ] `GET /api/categories`
-  - [ ] `GET /api/categories/:id`
-  - [ ] `POST /api/categories`
-  - [ ] `PUT /api/categories/:id`
-  - [ ] `DELETE /api/categories/:id`
+- [x] Buat file `backend/routes/CategoryRoute.js`
+- [x] Definisikan endpoints:
+  - [x] `GET /api/categories`
+  - [x] `GET /api/categories/:id`
+  - [x] `POST /api/categories`
+  - [x] `PUT /api/categories/:id`
+  - [x] `DELETE /api/categories/:id`
 
 ### 3.3 Location Controller
-- [ ] Buat file `backend/controllers/LocationController.js`
-- [ ] Implementasi fungsi CRUD:
-  - [ ] `getAllLocations` - List semua lokasi
-  - [ ] `getLocationById` - Detail lokasi
-  - [ ] `createLocation` - Buat lokasi baru
-  - [ ] `updateLocation` - Update lokasi
-  - [ ] `deleteLocation` - Hapus lokasi (soft delete/check usage)
+- [x] Buat file `backend/controllers/LocationController.js`
+- [x] Implementasi fungsi CRUD:
+  - [x] `getAllLocations` - List semua lokasi
+  - [x] `getLocationById` - Detail lokasi
+  - [x] `createLocation` - Buat lokasi baru
+  - [x] `updateLocation` - Update lokasi
+  - [x] `deleteLocation` - Hapus lokasi (soft delete/check usage)
 
 ### 3.4 Location Routes
-- [ ] Buat file `backend/routes/LocationRoute.js`
-- [ ] Definisikan endpoints:
-  - [ ] `GET /api/locations`
-  - [ ] `GET /api/locations/:id`
-  - [ ] `POST /api/locations`
-  - [ ] `PUT /api/locations/:id`
-  - [ ] `DELETE /api/locations/:id`
+- [x] Buat file `backend/routes/LocationRoute.js`
+- [x] Definisikan endpoints:
+  - [x] `GET /api/locations`
+  - [x] `GET /api/locations/:id`
+  - [x] `POST /api/locations`
+  - [x] `PUT /api/locations/:id`
+  - [x] `DELETE /api/locations/:id`
 
 ### 3.5 User Management Controller
-- [ ] Buat file `backend/controllers/UserController.js`
-- [ ] Implementasi fungsi:
-  - [ ] `getAllUsers` - List semua user (with pagination)
-  - [ ] `getUserById` - Detail user
-  - [ ] `createUser` - Buat user baru
-  - [ ] `updateUser` - Update data user
-  - [ ] `deleteUser` - Hapus/deactivate user
-  - [ ] `getEmployees` - List user dengan role 'employee' (untuk dropdown)
+- [x] Buat file `backend/controllers/UserController.js`
+- [x] Implementasi fungsi:
+  - [x] `getAllUsers` - List semua user (with pagination)
+  - [x] `getUserById` - Detail user
+  - [x] `createUser` - Buat user baru
+  - [x] `updateUser` - Update data user
+  - [x] `deleteUser` - Hapus/deactivate user
+  - [x] `getEmployees` - List user dengan role 'employee' (untuk dropdown)
 
 ### 3.6 User Routes
-- [ ] Buat file `backend/routes/UserRoute.js`
-- [ ] Definisikan endpoints:
-  - [ ] `GET /api/users`
-  - [ ] `GET /api/users/:id`
-  - [ ] `POST /api/users`
-  - [ ] `PUT /api/users/:id`
-  - [ ] `DELETE /api/users/:id`
-  - [ ] `GET /api/users/employees` - Filtered list
+- [x] Buat file `backend/routes/UserRoute.js`
+- [x] Definisikan endpoints:
+  - [x] `GET /api/users`
+  - [x] `GET /api/users/:id`
+  - [x] `POST /api/users`
+  - [x] `PUT /api/users/:id`
+  - [x] `DELETE /api/users/:id`
+  - [x] `GET /api/users/employees` - Filtered list
 
 ---
 
