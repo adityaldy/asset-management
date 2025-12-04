@@ -1,19 +1,18 @@
 /**
- * Export data to CSV file
- * @param {Array} data - Array of objects to export
- * @param {string} filename - Output filename (without extension)
+ * Convert data array to CSV string
+ * @param {Array} data - Array of objects to convert
+ * @returns {string} CSV formatted string
  */
-export const exportToCSV = (data, filename = 'export') => {
+export const convertToCSV = (data) => {
     if (!data || data.length === 0) {
-        console.warn('No data to export');
-        return;
+        throw new Error('No data to export');
     }
 
     // Get headers from first object keys
     const headers = Object.keys(data[0]);
     
     // Create header row
-    const headerRow = headers.map(h => `"${h}"`).join(',');
+    const headerRow = headers.join(',');
     
     // Create data rows
     const dataRows = data.map(row => {
@@ -25,14 +24,33 @@ export const exportToCSV = (data, filename = 'export') => {
                 value = '';
             }
             
-            // Escape quotes and wrap in quotes
-            value = String(value).replace(/"/g, '""');
-            return `"${value}"`;
+            // Convert to string
+            value = String(value);
+            
+            // Check if value needs quoting (contains comma, quote, or newline)
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                // Escape quotes by doubling them
+                value = value.replace(/"/g, '""');
+                return `"${value}"`;
+            }
+            
+            return value;
         }).join(',');
     });
     
     // Combine header and data
-    const csvContent = [headerRow, ...dataRows].join('\n');
+    return [headerRow, ...dataRows].join('\n');
+};
+
+/**
+ * Export data to CSV file
+ * @param {Array} data - Array of objects to export
+ * @param {string} filename - Output filename (without extension)
+ * @returns {string} CSV content that was exported
+ */
+export const exportToCSV = (data, filename = 'export') => {
+    // Convert to CSV (this will throw if data is empty/null)
+    const csvContent = convertToCSV(data);
     
     // Create blob and download
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -48,6 +66,9 @@ export const exportToCSV = (data, filename = 'export') => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    // Return the CSV content for testing purposes
+    return csvContent;
 };
 
 /**

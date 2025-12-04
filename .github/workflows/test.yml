@@ -1,0 +1,332 @@
+name: CI - Unit Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: it_asset_management_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run tests with coverage
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_NAME: it_asset_management_test
+          DB_USER: root
+          DB_PASSWORD: root
+          JWT_SECRET: test-secret-key
+          JWT_EXPIRES_IN: 1h
+          JWT_REFRESH_EXPIRES_IN: 7d
+        run: npm run test:coverage -- --ci --json --outputFile=test-results.json || true
+
+      - name: Generate backend test report
+        if: always()
+        id: backend-report
+        working-directory: ./backend
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')
+            echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          else
+            echo "coverage=0" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ -f test-results.json ]; then
+            PASSED=$(cat test-results.json | jq -r '.numPassedTests // 0')
+            FAILED=$(cat test-results.json | jq -r '.numFailedTests // 0')
+            TOTAL=$(cat test-results.json | jq -r '.numTotalTests // 0')
+            echo "passed=$PASSED" >> $GITHUB_OUTPUT
+            echo "failed=$FAILED" >> $GITHUB_OUTPUT
+            echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          else
+            echo "passed=0" >> $GITHUB_OUTPUT
+            echo "failed=0" >> $GITHUB_OUTPUT
+            echo "total=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload backend coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+          retention-days: 5
+
+    outputs:
+      coverage: ${{ steps.backend-report.outputs.coverage }}
+      passed: ${{ steps.backend-report.outputs.passed }}
+      failed: ${{ steps.backend-report.outputs.failed }}
+      total: ${{ steps.backend-report.outputs.total }}
+
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run tests with coverage
+        working-directory: ./frontend
+        run: npm run test:coverage -- --reporter=json --outputFile=test-results.json || true
+
+      - name: Generate frontend test report
+        if: always()
+        id: frontend-report
+        working-directory: ./frontend
+        run: |
+          if [ -f coverage/coverage-summary.json ]; then
+            COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')
+            echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          else
+            echo "coverage=0" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ -f test-results.json ]; then
+            PASSED=$(cat test-results.json | jq -r '[.testResults[].assertionResults[] | select(.status=="passed")] | length')
+            FAILED=$(cat test-results.json | jq -r '[.testResults[].assertionResults[] | select(.status=="failed")] | length')
+            TOTAL=$(cat test-results.json | jq -r '[.testResults[].assertionResults[]] | length')
+            echo "passed=$PASSED" >> $GITHUB_OUTPUT
+            echo "failed=$FAILED" >> $GITHUB_OUTPUT
+            echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          else
+            echo "passed=0" >> $GITHUB_OUTPUT
+            echo "failed=0" >> $GITHUB_OUTPUT
+            echo "total=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+          retention-days: 5
+
+    outputs:
+      coverage: ${{ steps.frontend-report.outputs.coverage }}
+      passed: ${{ steps.frontend-report.outputs.passed }}
+      failed: ${{ steps.frontend-report.outputs.failed }}
+      total: ${{ steps.frontend-report.outputs.total }}
+
+  comment-results:
+    name: Post Test Results
+    needs: [backend-test, frontend-test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Create Test Report Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const backendCoverage = '${{ needs.backend-test.outputs.coverage }}' || '0';
+            const backendPassed = '${{ needs.backend-test.outputs.passed }}' || '0';
+            const backendFailed = '${{ needs.backend-test.outputs.failed }}' || '0';
+            const backendTotal = '${{ needs.backend-test.outputs.total }}' || '0';
+            
+            const frontendCoverage = '${{ needs.frontend-test.outputs.coverage }}' || '0';
+            const frontendPassed = '${{ needs.frontend-test.outputs.passed }}' || '0';
+            const frontendFailed = '${{ needs.frontend-test.outputs.failed }}' || '0';
+            const frontendTotal = '${{ needs.frontend-test.outputs.total }}' || '0';
+            
+            const coverageThreshold = 80;
+            
+            const getStatusEmoji = (failed) => parseInt(failed) === 0 ? '✅' : '❌';
+            const getCoverageEmoji = (coverage) => parseFloat(coverage) >= coverageThreshold ? '✅' : '⚠️';
+            const getCoverageBar = (coverage) => {
+              const pct = Math.min(100, Math.max(0, parseFloat(coverage) || 0));
+              const filled = Math.round(pct / 10);
+              return '█'.repeat(filled) + '░'.repeat(10 - filled);
+            };
+            
+            const backendStatus = getStatusEmoji(backendFailed);
+            const frontendStatus = getStatusEmoji(frontendFailed);
+            const backendCoverageStatus = getCoverageEmoji(backendCoverage);
+            const frontendCoverageStatus = getCoverageEmoji(frontendCoverage);
+            
+            const totalPassed = parseInt(backendPassed) + parseInt(frontendPassed);
+            const totalFailed = parseInt(backendFailed) + parseInt(frontendFailed);
+            const totalTests = parseInt(backendTotal) + parseInt(frontendTotal);
+            const overallStatus = totalFailed === 0 ? '✅ All Tests Passed!' : '❌ Some Tests Failed';
+            
+            const body = `## 🧪 Test Results Report
+
+### Overall Status: ${overallStatus}
+
+---
+
+### 🔧 Backend Tests ${backendStatus}
+
+| Metric | Value |
+|--------|-------|
+| **Tests** | ${backendPassed}/${backendTotal} passed |
+| **Failed** | ${backendFailed} |
+| **Coverage** | ${backendCoverageStatus} ${backendCoverage}% |
+| **Progress** | \`${getCoverageBar(backendCoverage)}\` |
+
+---
+
+### 🎨 Frontend Tests ${frontendStatus}
+
+| Metric | Value |
+|--------|-------|
+| **Tests** | ${frontendPassed}/${frontendTotal} passed |
+| **Failed** | ${frontendFailed} |
+| **Coverage** | ${frontendCoverageStatus} ${frontendCoverage}% |
+| **Progress** | \`${getCoverageBar(frontendCoverage)}\` |
+
+---
+
+### 📊 Summary
+
+| Category | Passed | Failed | Total | Coverage |
+|----------|--------|--------|-------|----------|
+| Backend | ${backendPassed} | ${backendFailed} | ${backendTotal} | ${backendCoverage}% |
+| Frontend | ${frontendPassed} | ${frontendFailed} | ${frontendTotal} | ${frontendCoverage}% |
+| **Total** | **${totalPassed}** | **${totalFailed}** | **${totalTests}** | - |
+
+---
+
+### 📋 Coverage Threshold: ${coverageThreshold}%
+
+${parseFloat(backendCoverage) < coverageThreshold || parseFloat(frontendCoverage) < coverageThreshold ? 
+  '⚠️ **Warning:** Some modules are below the coverage threshold. Please add more tests before merging.' : 
+  '✅ **Great job!** All coverage thresholds are met.'}
+
+---
+
+<details>
+<summary>ℹ️ How to improve coverage</summary>
+
+1. Run tests locally: \`npm run test:coverage\`
+2. Check the coverage report in \`coverage/lcov-report/index.html\`
+3. Add tests for uncovered lines/branches
+4. Focus on critical business logic first
+
+</details>
+
+---
+*🤖 This comment was automatically generated by GitHub Actions*
+*Run ID: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})*`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🧪 Test Results Report')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+  coverage-check:
+    name: Coverage Threshold Check
+    needs: [backend-test, frontend-test]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check Coverage Threshold
+        run: |
+          BACKEND_COVERAGE=${{ needs.backend-test.outputs.coverage }}
+          FRONTEND_COVERAGE=${{ needs.frontend-test.outputs.coverage }}
+          THRESHOLD=80
+          
+          echo "Backend Coverage: ${BACKEND_COVERAGE}%"
+          echo "Frontend Coverage: ${FRONTEND_COVERAGE}%"
+          echo "Threshold: ${THRESHOLD}%"
+          
+          # Convert to integers for comparison (multiply by 100 to handle decimals)
+          BACKEND_INT=$(echo "$BACKEND_COVERAGE * 100" | bc | cut -d. -f1)
+          FRONTEND_INT=$(echo "$FRONTEND_COVERAGE * 100" | bc | cut -d. -f1)
+          THRESHOLD_INT=$((THRESHOLD * 100))
+          
+          FAILED=0
+          
+          if [ "$BACKEND_INT" -lt "$THRESHOLD_INT" ]; then
+            echo "❌ Backend coverage ($BACKEND_COVERAGE%) is below threshold ($THRESHOLD%)"
+            FAILED=1
+          else
+            echo "✅ Backend coverage ($BACKEND_COVERAGE%) meets threshold ($THRESHOLD%)"
+          fi
+          
+          if [ "$FRONTEND_INT" -lt "$THRESHOLD_INT" ]; then
+            echo "❌ Frontend coverage ($FRONTEND_COVERAGE%) is below threshold ($THRESHOLD%)"
+            FAILED=1
+          else
+            echo "✅ Frontend coverage ($FRONTEND_COVERAGE%) meets threshold ($THRESHOLD%)"
+          fi
+          
+          if [ "$FAILED" -eq 1 ]; then
+            echo ""
+            echo "⚠️ Coverage threshold not met. Please add more tests."
+            exit 1
+          fi

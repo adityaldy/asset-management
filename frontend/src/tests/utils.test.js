@@ -3,9 +3,17 @@
  * Tests for formatDate, export, and constants utilities
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { 
+  formatCurrency, 
+  formatNumber, 
+  formatNumberShort, 
+  formatCurrencyShort,
+  exportToCSV,
+  convertToCSV 
+} from '../utils/export';
 
-// formatDate utility replica
+// formatDate utility replica (local mock for testing)
 const formatDate = (dateString, format = 'short') => {
   if (!dateString) return '-';
   
@@ -21,51 +29,6 @@ const formatDate = (dateString, format = 'short') => {
   };
   
   return date.toLocaleDateString('id-ID', options[format] || options.short);
-};
-
-// formatCurrency utility replica
-const formatCurrency = (amount) => {
-  if (amount === null || amount === undefined) return 'Rp 0';
-  
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(amount);
-};
-
-// Export to CSV utility replica
-const exportToCSV = (data, filename) => {
-  if (!data || data.length === 0) {
-    throw new Error('No data to export');
-  }
-
-  const headers = Object.keys(data[0]);
-  const csvRows = [];
-
-  // Add headers
-  csvRows.push(headers.join(','));
-
-  // Add data rows
-  for (const row of data) {
-    const values = headers.map(header => {
-      const value = row[header];
-      // Handle special characters and quotes
-      if (typeof value === 'string') {
-        // Escape quotes
-        const escaped = value.replace(/"/g, '""');
-        // Wrap in quotes if contains comma, newline, or quote
-        if (escaped.includes(',') || escaped.includes('\n') || escaped.includes('"')) {
-          return `"${escaped}"`;
-        }
-        return escaped;
-      }
-      return value ?? '';
-    });
-    csvRows.push(values.join(','));
-  }
-
-  return csvRows.join('\n');
 };
 
 describe('formatDate', () => {
@@ -140,12 +103,12 @@ describe('formatCurrency', () => {
 
   it('should handle null', () => {
     const result = formatCurrency(null);
-    expect(result).toBe('Rp 0');
+    expect(result).toBe('-');
   });
 
   it('should handle undefined', () => {
     const result = formatCurrency(undefined);
-    expect(result).toBe('Rp 0');
+    expect(result).toBe('-');
   });
 
   it('should format large numbers with separators', () => {
@@ -155,7 +118,186 @@ describe('formatCurrency', () => {
   });
 });
 
+describe('formatNumber', () => {
+  it('should format numbers with thousand separators', () => {
+    const result = formatNumber(1000000);
+    expect(result).toBe('1.000.000');
+  });
+
+  it('should handle null', () => {
+    expect(formatNumber(null)).toBe('-');
+  });
+
+  it('should handle undefined', () => {
+    expect(formatNumber(undefined)).toBe('-');
+  });
+
+  it('should format zero', () => {
+    expect(formatNumber(0)).toBe('0');
+  });
+});
+
+describe('formatNumberShort', () => {
+  describe('Triliun (T)', () => {
+    it('should format exact triliun', () => {
+      const result = formatNumberShort(1000000000000);
+      expect(result).toBe('1 T');
+    });
+
+    it('should format triliun with decimal', () => {
+      const result = formatNumberShort(1500000000000);
+      expect(result).toBe('1,5 T');
+    });
+  });
+
+  describe('Milyar (M)', () => {
+    it('should format exact milyar', () => {
+      const result = formatNumberShort(1000000000);
+      expect(result).toBe('1 M');
+    });
+
+    it('should format milyar with decimal', () => {
+      const result = formatNumberShort(2500000000);
+      expect(result).toBe('2,5 M');
+    });
+  });
+
+  describe('Juta (Jt)', () => {
+    it('should format exact juta', () => {
+      const result = formatNumberShort(1000000);
+      expect(result).toBe('1 Jt');
+    });
+
+    it('should format juta with decimal', () => {
+      const result = formatNumberShort(313000000);
+      expect(result).toBe('313 Jt');
+    });
+
+    it('should format 2.5 juta', () => {
+      const result = formatNumberShort(2500000);
+      expect(result).toBe('2,5 Jt');
+    });
+  });
+
+  describe('Ribu (Rb)', () => {
+    it('should format exact ribu', () => {
+      const result = formatNumberShort(1000);
+      expect(result).toBe('1 Rb');
+    });
+
+    it('should format ribu with decimal', () => {
+      const result = formatNumberShort(5500);
+      expect(result).toBe('5,5 Rb');
+    });
+  });
+
+  describe('Numbers below 1000', () => {
+    it('should format without abbreviation', () => {
+      const result = formatNumberShort(500);
+      expect(result).toBe('500');
+    });
+
+    it('should format zero', () => {
+      const result = formatNumberShort(0);
+      expect(result).toBe('0');
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('should handle null', () => {
+      expect(formatNumberShort(null)).toBe('-');
+    });
+
+    it('should handle undefined', () => {
+      expect(formatNumberShort(undefined)).toBe('-');
+    });
+
+    it('should handle negative numbers', () => {
+      const result = formatNumberShort(-5000000);
+      expect(result).toBe('-5 Jt');
+    });
+  });
+});
+
+describe('formatCurrencyShort', () => {
+  describe('Triliun (T)', () => {
+    it('should format triliun with Rp prefix', () => {
+      const result = formatCurrencyShort(1000000000000);
+      expect(result).toBe('Rp 1 T');
+    });
+  });
+
+  describe('Milyar (M)', () => {
+    it('should format milyar with Rp prefix', () => {
+      const result = formatCurrencyShort(1000000000);
+      expect(result).toBe('Rp 1 M');
+    });
+  });
+
+  describe('Juta (Jt)', () => {
+    it('should format juta with Rp prefix', () => {
+      const result = formatCurrencyShort(313000000);
+      expect(result).toBe('Rp 313 Jt');
+    });
+
+    it('should format juta with decimal', () => {
+      const result = formatCurrencyShort(1500000);
+      expect(result).toBe('Rp 1,5 Jt');
+    });
+  });
+
+  describe('Ribu (Rb)', () => {
+    it('should format ribu with Rp prefix', () => {
+      const result = formatCurrencyShort(50000);
+      expect(result).toBe('Rp 50 Rb');
+    });
+  });
+
+  describe('Below 1000', () => {
+    it('should format with full number', () => {
+      const result = formatCurrencyShort(500);
+      expect(result).toBe('Rp 500');
+    });
+  });
+
+  describe('Custom prefix', () => {
+    it('should allow custom currency prefix', () => {
+      const result = formatCurrencyShort(1000000, '$');
+      expect(result).toBe('$ 1 Jt');
+    });
+  });
+
+  describe('Edge cases', () => {
+    it('should handle null', () => {
+      expect(formatCurrencyShort(null)).toBe('-');
+    });
+
+    it('should handle undefined', () => {
+      expect(formatCurrencyShort(undefined)).toBe('-');
+    });
+
+    it('should handle negative numbers', () => {
+      const result = formatCurrencyShort(-5000000);
+      expect(result).toBe('-Rp 5 Jt');
+    });
+  });
+});
+
 describe('exportToCSV', () => {
+  // Mock DOM elements for exportToCSV
+  beforeEach(() => {
+    // Mock URL.createObjectURL
+    global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+    
+    // Mock document methods
+    document.body.appendChild = vi.fn();
+    document.body.removeChild = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe('Basic Export', () => {
     it('should export simple data to CSV', () => {
       const data = [
@@ -245,6 +387,28 @@ describe('exportToCSV', () => {
       const lines = result.split('\n');
       
       expect(lines.length).toBe(4); // 1 header + 3 data rows
+    });
+  });
+});
+
+describe('convertToCSV', () => {
+  describe('Basic Conversion', () => {
+    it('should convert data to CSV string', () => {
+      const data = [
+        { name: 'Test', value: 100 }
+      ];
+      
+      const result = convertToCSV(data);
+      
+      expect(result).toBe('name,value\nTest,100');
+    });
+
+    it('should throw error for empty data', () => {
+      expect(() => convertToCSV([])).toThrow('No data to export');
+    });
+
+    it('should throw error for null data', () => {
+      expect(() => convertToCSV(null)).toThrow('No data to export');
     });
   });
 });
