@@ -290,45 +290,4 @@ ${parseFloat(backendCoverage) < coverageThreshold || parseFloat(frontendCoverage
 
   # Coverage threshold check disabled for now
   # Uncomment this job when ready to enforce coverage requirements
-  # coverage-check:
-  #   name: Coverage Threshold Check
-  #   needs: [backend-test, frontend-test]
-  #   runs-on: ubuntu-latest
-  #   
-  #   steps:
-  #     - name: Check Coverage Threshold
-  #       run: |
-  #         BACKEND_COVERAGE=${{ needs.backend-test.outputs.coverage }}
-  #         FRONTEND_COVERAGE=${{ needs.frontend-test.outputs.coverage }}
-  #         THRESHOLD=80
-  #         
-  #         echo "Backend Coverage: ${BACKEND_COVERAGE}%"
-  #         echo "Frontend Coverage: ${FRONTEND_COVERAGE}%"
-  #         echo "Threshold: ${THRESHOLD}%"
-  #         
-  #         # Convert to integers for comparison (multiply by 100 to handle decimals)
-  #         BACKEND_INT=$(echo "$BACKEND_COVERAGE * 100" | bc | cut -d. -f1)
-  #         FRONTEND_INT=$(echo "$FRONTEND_COVERAGE * 100" | bc | cut -d. -f1)
-  #         THRESHOLD_INT=$((THRESHOLD * 100))
-  #         
-  #         FAILED=0
-  #         
-  #         if [ "$BACKEND_INT" -lt "$THRESHOLD_INT" ]; then
-  #           echo "❌ Backend coverage ($BACKEND_COVERAGE%) is below threshold ($THRESHOLD%)"
-  #           FAILED=1
-  #         else
-  #           echo "✅ Backend coverage ($BACKEND_COVERAGE%) meets threshold ($THRESHOLD%)"
-  #         fi
-  #         
-  #         if [ "$FRONTEND_INT" -lt "$THRESHOLD_INT" ]; then
-  #           echo "❌ Frontend coverage ($FRONTEND_COVERAGE%) is below threshold ($THRESHOLD%)"
-  #           FAILED=1
-  #         else
-  #           echo "✅ Frontend coverage ($FRONTEND_COVERAGE%) meets threshold ($THRESHOLD%)"
-  #         fi
-  #         
-  #         if [ "$FAILED" -eq 1 ]; then
-  #           echo ""
-  #           echo "⚠️ Coverage threshold not met. Please add more tests."
-  #           exit 1
-  #         fi
+  # See: coverage-check-template.yml for the job definition
