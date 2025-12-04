@@ -71,6 +71,26 @@ export const paginationMeta = (page, limit, totalRecords) => {
     };
 };
 
+/**
+ * Paginated Response
+ * @param {Object} res - Express response object
+ * @param {Array} data - Response data array
+ * @param {number} page - Current page
+ * @param {number} limit - Items per page
+ * @param {number} totalRecords - Total records in database
+ * @param {string} message - Success message
+ * @param {number} statusCode - HTTP status code (default: 200)
+ */
+export const paginatedResponse = (res, data, page, limit, totalRecords, message = "Success", statusCode = 200) => {
+    const meta = paginationMeta(page, limit, totalRecords);
+    return res.status(statusCode).json({
+        success: true,
+        message,
+        data,
+        meta
+    });
+};
+
 // Error Codes
 export const ErrorCodes = {
     // Validation Errors (VAL_ERR_XXX)

@@ -79,6 +79,7 @@ Transactions.belongsTo(Users, {
 // EXPORT
 // =====================================================
 
+// Export with plural names (original)
 export {
     db,
     Users,
@@ -86,4 +87,13 @@ export {
     Locations,
     Assets,
     Transactions
+};
+
+// Export with singular names (aliases for convenience)
+export {
+    Users as User,
+    Categories as Category,
+    Locations as Location,
+    Assets as Asset,
+    Transactions as Transaction
 };
