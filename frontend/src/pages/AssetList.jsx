@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { HiPlus, HiSearch, HiFilter, HiRefresh } from 'react-icons/hi';
 import api from '../api/axios';
 import useDebounce from '../hooks/useDebounce';
-import AssetTable from '../components/assets/AssetTable';
-import Pagination from '../components/common/Pagination';
+import AssetDataTable from '../components/assets/AssetDataTable';
 import Spinner from '../components/common/Spinner';
 import ErrorState from '../components/common/ErrorState';
 import { ASSET_STATUS, ASSET_STATUS_LABELS } from '../utils/constants';
@@ -241,27 +240,22 @@ const AssetList = () => {
             {error ? (
                 <ErrorState message={error} onRetry={fetchAssets} />
             ) : (
-                <>
-                    <AssetTable 
-                        assets={assets} 
-                        loading={loading} 
-                        onDelete={handleDelete}
-                    />
-                    
-                    {!loading && assets.length > 0 && (
-                        <Pagination
-                            currentPage={page}
-                            totalPages={totalPages}
-                            totalItems={totalItems}
-                            itemsPerPage={limit}
-                            onPageChange={setPage}
-                            onLimitChange={(newLimit) => {
-                                setLimit(newLimit);
-                                setPage(1);
-                            }}
-                        />
-                    )}
-                </>
+                <AssetDataTable 
+                    assets={assets} 
+                    loading={loading} 
+                    onDelete={handleDelete}
+                    serverPagination={{
+                        page,
+                        limit,
+                        totalItems,
+                        totalPages,
+                        onPageChange: setPage,
+                        onLimitChange: (newLimit) => {
+                            setLimit(newLimit);
+                            setPage(1);
+                        }
+                    }}
+                />
             )}
         </div>
     );
