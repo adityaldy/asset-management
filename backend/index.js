@@ -11,6 +11,7 @@ import CategoryRoute from "./routes/CategoryRoute.js";
 import LocationRoute from "./routes/LocationRoute.js";
 import UserRoute from "./routes/UserRoute.js";
 import AssetRoute from "./routes/AssetRoute.js";
+import TransactionRoute from "./routes/TransactionRoute.js";
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ app.use('/api/categories', CategoryRoute);
 app.use('/api/locations', LocationRoute);
 app.use('/api/users', UserRoute);
 app.use('/api/assets', AssetRoute);
+app.use('/api/transactions', TransactionRoute);
 
 // 404 Handler
 app.use(notFoundHandler);

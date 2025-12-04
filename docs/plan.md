@@ -10,11 +10,11 @@ Dokumen ini berisi rencana implementasi detail berdasarkan "Perancangan Aplikasi
 
 | Komponen | Progress | Status |
 |----------|----------|--------|
-| **Backend** | 103/126 tasks | 🟡 In Progress |
+| **Backend** | 126/126 tasks | 🟢 Completed |
 | **Frontend** | 0/98 tasks | 🔴 Not Started |
 | **Testing** | 0/17 tasks | 🔴 Not Started |
 | **Documentation** | 0/10 tasks | 🔴 Not Started |
-| **TOTAL** | **103/251 tasks** | **41%** |
+| **TOTAL** | **126/251 tasks** | **50%** |
 
 ### **Progress per Fase**
 
@@ -25,7 +25,7 @@ Dokumen ini berisi rencana implementasi detail berdasarkan "Perancangan Aplikasi
 | 2 | Backend - Auth | 17 | 17 | ██████████ 100% | 🟢 |
 | 3 | Backend - Master Data | 22 | 22 | ██████████ 100% | 🟢 |
 | 4 | Backend - Asset Mgmt | 18 | 18 | ██████████ 100% | 🟢 |
-| 5 | Backend - Transactions | 23 | 0 | ░░░░░░░░░░ 0% | 🔴 |
+| 5 | Backend - Transactions | 23 | 23 | ██████████ 100% | 🟢 |
 | 6 | Backend - Dashboard | 12 | 0 | ░░░░░░░░░░ 0% | 🔴 |
 | 7 | Backend - Finalisasi | 18 | 0 | ░░░░░░░░░░ 0% | 🔴 |
 | 8 | Frontend - Setup | 12 | 0 | ░░░░░░░░░░ 0% | 🔴 |
@@ -48,8 +48,8 @@ Dokumen ini berisi rencana implementasi detail berdasarkan "Perancangan Aplikasi
 - 🔵 Under Review
 
 ### **Current Sprint**
-- **Active Fase**: Fase 4 (Completed) → Fase 5 (Next)
-- **Current Task**: Asset Management completed
+- **Active Fase**: Fase 5 (Completed) → Fase 6 (Next)
+- **Current Task**: Transaction Management completed
 - **Blockers**: None
 - **Last Updated**: 2025-12-04
 
@@ -492,63 +492,63 @@ it-asset-management/
 ## **Fase 5: Backend - Transaction Management (Check-in/Check-out)**
 
 ### 5.1 Transaction Controller
-- [ ] Buat file `backend/controllers/TransactionController.js`
-- [ ] Implementasi fungsi:
-  - [ ] `checkoutAsset` - Proses peminjaman
-  - [ ] `checkinAsset` - Proses pengembalian
-  - [ ] `sendToRepair` - Kirim ke perbaikan
-  - [ ] `completeRepair` - Selesai perbaikan
-  - [ ] `reportLost` - Lapor hilang
-  - [ ] `reportFound` - Lapor ditemukan
-  - [ ] `disposeAsset` - Penghapusan aset
-  - [ ] `getAllTransactions` - List transaksi
-  - [ ] `getTransactionById` - Detail transaksi
+- [x] Buat file `backend/controllers/TransactionController.js`
+- [x] Implementasi fungsi:
+  - [x] `checkoutAsset` - Proses peminjaman
+  - [x] `checkinAsset` - Proses pengembalian
+  - [x] `sendToRepair` - Kirim ke perbaikan
+  - [x] `completeRepair` - Selesai perbaikan
+  - [x] `reportLost` - Lapor hilang
+  - [x] `reportFound` - Lapor ditemukan
+  - [x] `disposeAsset` - Penghapusan aset
+  - [x] `getAllTransactions` - List transaksi
+  - [x] `getTransactionById` - Detail transaksi
 
 ### 5.2 State Machine Logic
-- [ ] Implementasi validasi transisi status:
-  - [ ] `available` -> `assigned` (checkout)
-  - [ ] `available` -> `repair` (send to repair)
-  - [ ] `available` -> `retired` (dispose)
-  - [ ] `assigned` -> `available` (checkin good)
-  - [ ] `assigned` -> `repair` (checkin damaged)
-  - [ ] `assigned` -> `missing` (report lost)
-  - [ ] `repair` -> `available` (repair completed)
-  - [ ] `repair` -> `retired` (beyond repair)
-  - [ ] `missing` -> `available` (found)
-  - [ ] `missing` -> `retired` (write-off)
-- [ ] Reject invalid transitions dengan error message
+- [x] Implementasi validasi transisi status:
+  - [x] `available` -> `assigned` (checkout)
+  - [x] `available` -> `repair` (send to repair)
+  - [x] `available` -> `retired` (dispose)
+  - [x] `assigned` -> `available` (checkin good)
+  - [x] `assigned` -> `repair` (checkin damaged)
+  - [x] `assigned` -> `missing` (report lost)
+  - [x] `repair` -> `available` (repair completed)
+  - [x] `repair` -> `retired` (beyond repair)
+  - [x] `missing` -> `available` (found)
+  - [x] `missing` -> `retired` (write-off)
+- [x] Reject invalid transitions dengan error message
 
 ### 5.3 Database Transaction (Atomicity)
-- [ ] Implementasi Sequelize transaction untuk checkout
-- [ ] Implementasi Sequelize transaction untuk checkin
-- [ ] Implementasi rollback on error
-- [ ] Test atomicity (simulate failure)
+- [x] Implementasi Sequelize transaction untuk checkout
+- [x] Implementasi Sequelize transaction untuk checkin
+- [x] Implementasi rollback on error
+- [x] Test atomicity (simulate failure)
 
 ### 5.4 Transaction Validation
-- [ ] Buat file `backend/middleware/TransactionValidation.js`
-- [ ] Validasi checkout request:
-  - [ ] Asset UUID valid
-  - [ ] User UUID valid
-  - [ ] Asset status === 'available'
-  - [ ] Transaction date valid
-- [ ] Validasi checkin request:
-  - [ ] Asset UUID valid
-  - [ ] Asset status === 'assigned'
-  - [ ] Condition status required
-  - [ ] Transaction date valid
+- [x] Buat file `backend/middleware/TransactionValidation.js`
+- [x] Validasi checkout request:
+  - [x] Asset UUID valid
+  - [x] User UUID valid
+  - [x] Asset status === 'available'
+  - [x] Transaction date valid
+- [x] Validasi checkin request:
+  - [x] Asset UUID valid
+  - [x] Asset status === 'assigned'
+  - [x] Condition status required
+  - [x] Transaction date valid
 
 ### 5.5 Transaction Routes
-- [ ] Buat file `backend/routes/TransactionRoute.js`
-- [ ] Definisikan endpoints:
-  - [ ] `POST /api/transactions/checkout`
-  - [ ] `POST /api/transactions/checkin`
-  - [ ] `POST /api/transactions/repair`
-  - [ ] `POST /api/transactions/complete-repair`
-  - [ ] `POST /api/transactions/report-lost`
-  - [ ] `POST /api/transactions/report-found`
-  - [ ] `POST /api/transactions/dispose`
-  - [ ] `GET /api/transactions`
-  - [ ] `GET /api/transactions/:id`
+- [x] Buat file `backend/routes/TransactionRoute.js`
+- [x] Definisikan endpoints:
+  - [x] `POST /api/transactions/checkout`
+  - [x] `POST /api/transactions/checkin`
+  - [x] `POST /api/transactions/repair`
+  - [x] `POST /api/transactions/complete-repair`
+  - [x] `POST /api/transactions/report-lost`
+  - [x] `POST /api/transactions/report-found`
+  - [x] `POST /api/transactions/dispose`
+  - [x] `GET /api/transactions`
+  - [x] `GET /api/transactions/:id`
 
 ---
 
