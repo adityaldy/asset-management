@@ -10,11 +10,11 @@ Dokumen ini berisi rencana implementasi detail berdasarkan "Perancangan Aplikasi
 
 | Komponen | Progress | Status |
 |----------|----------|--------|
-| **Backend** | 85/126 tasks | 🟡 In Progress |
+| **Backend** | 103/126 tasks | 🟡 In Progress |
 | **Frontend** | 0/98 tasks | 🔴 Not Started |
 | **Testing** | 0/17 tasks | 🔴 Not Started |
 | **Documentation** | 0/10 tasks | 🔴 Not Started |
-| **TOTAL** | **85/251 tasks** | **34%** |
+| **TOTAL** | **103/251 tasks** | **41%** |
 
 ### **Progress per Fase**
 
@@ -24,7 +24,7 @@ Dokumen ini berisi rencana implementasi detail berdasarkan "Perancangan Aplikasi
 | 1 | Backend - Models | 29 | 29 | ██████████ 100% | 🟢 |
 | 2 | Backend - Auth | 17 | 17 | ██████████ 100% | 🟢 |
 | 3 | Backend - Master Data | 22 | 22 | ██████████ 100% | 🟢 |
-| 4 | Backend - Asset Mgmt | 18 | 0 | ░░░░░░░░░░ 0% | 🔴 |
+| 4 | Backend - Asset Mgmt | 18 | 18 | ██████████ 100% | 🟢 |
 | 5 | Backend - Transactions | 23 | 0 | ░░░░░░░░░░ 0% | 🔴 |
 | 6 | Backend - Dashboard | 12 | 0 | ░░░░░░░░░░ 0% | 🔴 |
 | 7 | Backend - Finalisasi | 18 | 0 | ░░░░░░░░░░ 0% | 🔴 |
@@ -48,10 +48,10 @@ Dokumen ini berisi rencana implementasi detail berdasarkan "Perancangan Aplikasi
 - 🔵 Under Review
 
 ### **Current Sprint**
-- **Active Fase**: Fase 3 (Completed) → Fase 4 (Next)
-- **Current Task**: Master Data Management completed
+- **Active Fase**: Fase 4 (Completed) → Fase 5 (Next)
+- **Current Task**: Asset Management completed
 - **Blockers**: None
-- **Last Updated**: 2024-12-04
+- **Last Updated**: 2025-12-04
 
 ---
 
@@ -447,45 +447,45 @@ it-asset-management/
 ## **Fase 4: Backend - Asset Management**
 
 ### 4.1 Asset Controller
-- [ ] Buat file `backend/controllers/AssetController.js`
-- [ ] Implementasi fungsi:
-  - [ ] `getAllAssets` - List dengan pagination, sorting, filtering
-  - [ ] `getAssetById` - Detail aset dengan relasi (category, location, holder)
-  - [ ] `getAssetHistory` - Riwayat transaksi aset
-  - [ ] `createAsset` - Registrasi aset baru
-  - [ ] `updateAsset` - Update data aset (bukan status)
-  - [ ] `deleteAsset` - Soft delete / retire asset
-  - [ ] `searchAssets` - Full-text search
+- [x] Buat file `backend/controllers/AssetController.js`
+- [x] Implementasi fungsi:
+  - [x] `getAllAssets` - List dengan pagination, sorting, filtering
+  - [x] `getAssetById` - Detail aset dengan relasi (category, location, holder)
+  - [x] `getAssetHistory` - Riwayat transaksi aset
+  - [x] `createAsset` - Registrasi aset baru
+  - [x] `updateAsset` - Update data aset (bukan status)
+  - [x] `deleteAsset` - Soft delete / retire asset
+  - [x] `searchAssets` - Full-text search
 
 ### 4.2 Asset Validation
-- [ ] Buat file `backend/middleware/AssetValidation.js`
-- [ ] Implementasi validasi dengan Joi:
-  - [ ] Validasi create asset request
-  - [ ] Validasi update asset request
-  - [ ] Validasi uniqueness serial_number
-  - [ ] Validasi uniqueness asset_tag
-  - [ ] Validasi foreign keys exist
+- [x] Buat file `backend/middleware/AssetValidation.js`
+- [x] Implementasi validasi dengan Joi:
+  - [x] Validasi create asset request
+  - [x] Validasi update asset request
+  - [x] Validasi uniqueness serial_number
+  - [x] Validasi uniqueness asset_tag
+  - [x] Validasi foreign keys exist
 
 ### 4.3 Asset Routes
-- [ ] Buat file `backend/routes/AssetRoute.js`
-- [ ] Definisikan endpoints:
-  - [ ] `GET /api/assets` - List with query params
-  - [ ] `GET /api/assets/search` - Search endpoint
-  - [ ] `GET /api/assets/:id` - Detail
-  - [ ] `GET /api/assets/:id/history` - Transaction history
-  - [ ] `POST /api/assets` - Create
-  - [ ] `PUT /api/assets/:id` - Update
-  - [ ] `DELETE /api/assets/:id` - Delete/Retire
+- [x] Buat file `backend/routes/AssetRoute.js`
+- [x] Definisikan endpoints:
+  - [x] `GET /api/assets` - List with query params
+  - [x] `GET /api/assets/search` - Search endpoint
+  - [x] `GET /api/assets/:id` - Detail
+  - [x] `GET /api/assets/:id/history` - Transaction history
+  - [x] `POST /api/assets` - Create
+  - [x] `PUT /api/assets/:id` - Update
+  - [x] `DELETE /api/assets/:id` - Delete/Retire
 
 ### 4.4 Asset Query Features
-- [ ] Implementasi pagination (page, limit)
-- [ ] Implementasi sorting (sort_by, order)
-- [ ] Implementasi filtering:
-  - [ ] Filter by category
-  - [ ] Filter by location
-  - [ ] Filter by status
-  - [ ] Filter by date range
-- [ ] Implementasi search (name, serial_number, asset_tag)
+- [x] Implementasi pagination (page, limit)
+- [x] Implementasi sorting (sort_by, order)
+- [x] Implementasi filtering:
+  - [x] Filter by category
+  - [x] Filter by location
+  - [x] Filter by status
+  - [x] Filter by date range
+- [x] Implementasi search (name, serial_number, asset_tag)
 
 ---
 
