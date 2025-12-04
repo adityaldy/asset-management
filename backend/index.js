@@ -22,10 +22,23 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS must be first to handle preflight requests
+app.use(cors({
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 // Security Middleware
 app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
+
+// Body parsers
+app.use(cookieParser());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -39,7 +52,7 @@ const limiter = rateLimit({
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // Limit each IP to 5 login attempts per windowMs
+    max: 10, // Limit each IP to 10 login attempts per windowMs
     message: {
         success: false,
         message: "Too many login attempts, please try again later."
@@ -48,15 +61,6 @@ const authLimiter = rateLimit({
 
 app.use('/api/', limiter);
 app.use('/api/auth/login', authLimiter);
-
-// Middleware
-app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    credentials: true
-}));
-app.use(cookieParser());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -91,10 +95,17 @@ const startServer = async () => {
         console.log('✅ Database connection established successfully.');
 
         // Sync all models (create tables if not exist)
-        // Use { alter: true } in development to auto-update schema
-        // Use { force: true } only to drop and recreate all tables (DANGER!)
-        await db.sync({ alter: true });
-        console.log('✅ Database synchronized successfully.');
+        // Options:
+        // - No options: Only create tables if they don't exist (recommended for production)
+        // - { alter: true }: Auto-update schema (development only, slow)
+        // - { force: true }: Drop and recreate all tables (DANGER - loses data!)
+        // Skip sync if tables already exist - just validate connection
+        if (process.env.NODE_ENV === 'development') {
+            await db.sync();
+            console.log('✅ Database synchronized successfully.');
+        } else {
+            console.log('✅ Database ready (sync skipped in production).');
+        }
 
         // Start server
         app.listen(PORT, () => {

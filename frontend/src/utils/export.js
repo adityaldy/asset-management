@@ -67,6 +67,71 @@ export const formatCurrency = (value, currency = 'IDR') => {
 };
 
 /**
+ * Format number with abbreviation (Ribu, Juta, Milyar, Triliun)
+ * @param {number} value - Number to format
+ * @returns {string} Formatted number with abbreviation
+ */
+export const formatNumberShort = (value) => {
+    if (value === null || value === undefined) return '-';
+    
+    const absValue = Math.abs(value);
+    const sign = value < 0 ? '-' : '';
+    
+    if (absValue >= 1_000_000_000_000) {
+        // Triliun (1,000,000,000,000+)
+        const formatted = (absValue / 1_000_000_000_000).toFixed(absValue % 1_000_000_000_000 === 0 ? 0 : 1);
+        return `${sign}${formatted.replace('.', ',')} T`;
+    } else if (absValue >= 1_000_000_000) {
+        // Milyar (1,000,000,000+)
+        const formatted = (absValue / 1_000_000_000).toFixed(absValue % 1_000_000_000 === 0 ? 0 : 1);
+        return `${sign}${formatted.replace('.', ',')} M`;
+    } else if (absValue >= 1_000_000) {
+        // Juta (1,000,000+)
+        const formatted = (absValue / 1_000_000).toFixed(absValue % 1_000_000 === 0 ? 0 : 1);
+        return `${sign}${formatted.replace('.', ',')} Jt`;
+    } else if (absValue >= 1_000) {
+        // Ribu (1,000+)
+        const formatted = (absValue / 1_000).toFixed(absValue % 1_000 === 0 ? 0 : 1);
+        return `${sign}${formatted.replace('.', ',')} Rb`;
+    }
+    
+    return new Intl.NumberFormat('id-ID').format(value);
+};
+
+/**
+ * Format currency with abbreviation (Ribu, Juta, Milyar, Triliun)
+ * @param {number} value - Number to format
+ * @param {string} prefix - Currency prefix (default: Rp)
+ * @returns {string} Formatted currency with abbreviation
+ */
+export const formatCurrencyShort = (value, prefix = 'Rp') => {
+    if (value === null || value === undefined) return '-';
+    
+    const absValue = Math.abs(value);
+    const sign = value < 0 ? '-' : '';
+    
+    if (absValue >= 1_000_000_000_000) {
+        // Triliun (1,000,000,000,000+)
+        const formatted = (absValue / 1_000_000_000_000).toFixed(absValue % 1_000_000_000_000 === 0 ? 0 : 1);
+        return `${sign}${prefix} ${formatted.replace('.', ',')} T`;
+    } else if (absValue >= 1_000_000_000) {
+        // Milyar (1,000,000,000+)
+        const formatted = (absValue / 1_000_000_000).toFixed(absValue % 1_000_000_000 === 0 ? 0 : 1);
+        return `${sign}${prefix} ${formatted.replace('.', ',')} M`;
+    } else if (absValue >= 1_000_000) {
+        // Juta (1,000,000+)
+        const formatted = (absValue / 1_000_000).toFixed(absValue % 1_000_000 === 0 ? 0 : 1);
+        return `${sign}${prefix} ${formatted.replace('.', ',')} Jt`;
+    } else if (absValue >= 1_000) {
+        // Ribu (1,000+)
+        const formatted = (absValue / 1_000).toFixed(absValue % 1_000 === 0 ? 0 : 1);
+        return `${sign}${prefix} ${formatted.replace('.', ',')} Rb`;
+    }
+    
+    return `${prefix} ${new Intl.NumberFormat('id-ID').format(value)}`;
+};
+
+/**
  * Format number with thousand separators
  * @param {number} value - Number to format
  */

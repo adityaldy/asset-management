@@ -27,8 +27,7 @@ export const getAllCategories = async (req, res) => {
             where: whereClause,
             limit,
             offset,
-            order: [["name", "ASC"]],
-            attributes: ["id", "uuid", "name", "description", "createdAt", "updatedAt"]
+            order: [["name", "ASC"]]
         });
 
         return successResponse(res, {
@@ -49,12 +48,11 @@ export const getCategoryById = async (req, res) => {
     try {
         const category = await Category.findOne({
             where: { uuid: req.params.id },
-            attributes: ["id", "uuid", "name", "description", "createdAt", "updatedAt"],
             include: [
                 {
                     model: Asset,
                     as: "assets",
-                    attributes: ["uuid", "name", "assetTag", "status"]
+                    attributes: ["uuid", "name", "asset_tag", "status"]
                 }
             ]
         });
@@ -182,7 +180,7 @@ export const deleteCategory = async (req, res) => {
 
         // Check if category is being used by any assets
         const assetCount = await Asset.count({
-            where: { categoryId: category.id }
+            where: { category_id: category.id }
         });
 
         if (assetCount > 0) {

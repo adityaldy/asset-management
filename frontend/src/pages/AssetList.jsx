@@ -45,8 +45,8 @@ const AssetList = () => {
                     api.get('/categories'),
                     api.get('/locations')
                 ]);
-                setCategories(catRes.data.data || []);
-                setLocations(locRes.data.data || []);
+                setCategories(catRes.data.data?.categories || []);
+                setLocations(locRes.data.data?.locations || []);
             } catch (err) {
                 console.error('Failed to fetch filter options:', err);
             }
@@ -70,9 +70,10 @@ const AssetList = () => {
             };
 
             const response = await api.get('/assets', { params });
-            setAssets(response.data.data || []);
-            setTotalItems(response.data.meta?.total || 0);
-            setTotalPages(response.data.meta?.totalPages || 1);
+            const data = response.data.data;
+            setAssets(data?.assets || []);
+            setTotalItems(data?.pagination?.total_records || 0);
+            setTotalPages(data?.pagination?.total_pages || 1);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to fetch assets');
         } finally {

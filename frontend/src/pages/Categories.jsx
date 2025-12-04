@@ -50,9 +50,10 @@ const Categories = () => {
             if (debouncedSearch) params.append('search', debouncedSearch);
             
             const res = await api.get(`/categories?${params.toString()}`);
-            setCategories(res.data.data || []);
-            setTotalPages(res.data.pagination?.totalPages || 1);
-            setTotalItems(res.data.pagination?.total || 0);
+            const data = res.data.data;
+            setCategories(data?.categories || []);
+            setTotalPages(data?.pagination?.total_pages || 1);
+            setTotalItems(data?.pagination?.total_records || 0);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load categories');
         } finally {

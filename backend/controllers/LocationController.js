@@ -27,8 +27,7 @@ export const getAllLocations = async (req, res) => {
             where: whereClause,
             limit,
             offset,
-            order: [["name", "ASC"]],
-            attributes: ["id", "uuid", "name", "address", "createdAt", "updatedAt"]
+            order: [["name", "ASC"]]
         });
 
         return successResponse(res, {
@@ -49,12 +48,11 @@ export const getLocationById = async (req, res) => {
     try {
         const location = await Location.findOne({
             where: { uuid: req.params.id },
-            attributes: ["id", "uuid", "name", "address", "createdAt", "updatedAt"],
             include: [
                 {
                     model: Asset,
                     as: "assets",
-                    attributes: ["uuid", "name", "assetTag", "status"]
+                    attributes: ["uuid", "name", "asset_tag", "status"]
                 }
             ]
         });
@@ -182,7 +180,7 @@ export const deleteLocation = async (req, res) => {
 
         // Check if location is being used by any assets
         const assetCount = await Asset.count({
-            where: { locationId: location.id }
+            where: { location_id: location.id }
         });
 
         if (assetCount > 0) {

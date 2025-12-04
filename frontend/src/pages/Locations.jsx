@@ -50,9 +50,10 @@ const Locations = () => {
             if (debouncedSearch) params.append('search', debouncedSearch);
             
             const res = await api.get(`/locations?${params.toString()}`);
-            setLocations(res.data.data || []);
-            setTotalPages(res.data.pagination?.totalPages || 1);
-            setTotalItems(res.data.pagination?.total || 0);
+            const data = res.data.data;
+            setLocations(data?.locations || []);
+            setTotalPages(data?.pagination?.total_pages || 1);
+            setTotalItems(data?.pagination?.total_records || 0);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load locations');
         } finally {

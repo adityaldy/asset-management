@@ -6,12 +6,12 @@
 /**
  * Success Response
  * @param {Object} res - Express response object
- * @param {string} message - Success message
  * @param {Object} data - Response data
+ * @param {string} message - Success message
  * @param {number} statusCode - HTTP status code (default: 200)
  * @param {Object} meta - Optional meta data for pagination
  */
-export const successResponse = (res, message, data = null, statusCode = 200, meta = null) => {
+export const successResponse = (res, data, message = "Success", statusCode = 200, meta = null) => {
     const response = {
         success: true,
         message

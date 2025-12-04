@@ -47,17 +47,17 @@ export const checkoutAsset = async (req, res) => {
         // Update asset status and holder
         await asset.update({
             status: transition.newStatus,
-            currentHolderId: employee.id
+            current_holder_id: employee.id
         }, { transaction: t });
 
         // Create transaction record
         const transaction = await Transaction.create({
-            assetId: asset.id,
-            userId: employee.id,
-            adminId: req.user.id,
-            actionType: ActionType.CHECKOUT,
-            transactionDate: transactionDate || new Date(),
-            conditionStatus: null,
+            asset_id: asset.id,
+            user_id: employee.id,
+            admin_id: req.user.id,
+            action_type: ActionType.CHECKOUT,
+            transaction_date: transactionDate || new Date(),
+            condition_status: null,
             notes: notes || null
         }, { transaction: t });
 
@@ -70,7 +70,7 @@ export const checkoutAsset = async (req, res) => {
                 { 
                     model: Asset, 
                     as: "asset", 
-                    attributes: ["uuid", "name", "assetTag", "status"] 
+                    attributes: ["uuid", "name", "asset_tag", "status"] 
                 },
                 { 
                     model: User, 
@@ -130,7 +130,7 @@ export const checkinAsset = async (req, res) => {
         }
 
         // Store previous holder for transaction record
-        const previousHolderId = asset.currentHolderId;
+        const previousHolderId = asset.current_holder_id;
 
         // Update asset status
         const updateData = {
@@ -139,19 +139,19 @@ export const checkinAsset = async (req, res) => {
 
         // Clear holder unless going to repair (holder info might still be relevant)
         if (transition.newStatus === AssetStatus.AVAILABLE) {
-            updateData.currentHolderId = null;
+            updateData.current_holder_id = null;
         }
 
         await asset.update(updateData, { transaction: t });
 
         // Create transaction record
         const transaction = await Transaction.create({
-            assetId: asset.id,
-            userId: previousHolderId,
-            adminId: req.user.id,
-            actionType: ActionType.CHECKIN,
-            transactionDate: transactionDate || new Date(),
-            conditionStatus: conditionStatus,
+            asset_id: asset.id,
+            user_id: previousHolderId,
+            admin_id: req.user.id,
+            action_type: ActionType.CHECKIN,
+            transaction_date: transactionDate || new Date(),
+            condition_status: conditionStatus,
             notes: notes || null
         }, { transaction: t });
 
@@ -164,7 +164,7 @@ export const checkinAsset = async (req, res) => {
                 { 
                     model: Asset, 
                     as: "asset", 
-                    attributes: ["uuid", "name", "assetTag", "status"] 
+                    attributes: ["uuid", "name", "asset_tag", "status"] 
                 },
                 { 
                     model: User, 
@@ -223,12 +223,12 @@ export const sendToRepair = async (req, res) => {
 
         // Create transaction record
         const transaction = await Transaction.create({
-            assetId: asset.id,
-            userId: asset.currentHolderId,
-            adminId: req.user.id,
-            actionType: ActionType.REPAIR,
-            transactionDate: transactionDate || new Date(),
-            conditionStatus: ConditionStatus.DAMAGED,
+            asset_id: asset.id,
+            user_id: asset.current_holder_id,
+            admin_id: req.user.id,
+            action_type: ActionType.REPAIR,
+            transaction_date: transactionDate || new Date(),
+            condition_status: ConditionStatus.DAMAGED,
             notes: notes || null
         }, { transaction: t });
 
@@ -237,7 +237,7 @@ export const sendToRepair = async (req, res) => {
         const result = await Transaction.findOne({
             where: { id: transaction.id },
             include: [
-                { model: Asset, as: "asset", attributes: ["uuid", "name", "assetTag", "status"] },
+                { model: Asset, as: "asset", attributes: ["uuid", "name", "asset_tag", "status"] },
                 { model: User, as: "admin", attributes: ["uuid", "name"] }
             ]
         });
@@ -284,17 +284,17 @@ export const completeRepair = async (req, res) => {
         // Update asset status and clear holder
         await asset.update({ 
             status: transition.newStatus,
-            currentHolderId: null
+            current_holder_id: null
         }, { transaction: t });
 
         // Create transaction record
         const transaction = await Transaction.create({
-            assetId: asset.id,
-            userId: null,
-            adminId: req.user.id,
-            actionType: ActionType.COMPLETE_REPAIR,
-            transactionDate: transactionDate || new Date(),
-            conditionStatus: ConditionStatus.GOOD,
+            asset_id: asset.id,
+            user_id: null,
+            admin_id: req.user.id,
+            action_type: ActionType.COMPLETE_REPAIR,
+            transaction_date: transactionDate || new Date(),
+            condition_status: ConditionStatus.GOOD,
             notes: notes || "Repair completed"
         }, { transaction: t });
 
@@ -303,7 +303,7 @@ export const completeRepair = async (req, res) => {
         const result = await Transaction.findOne({
             where: { id: transaction.id },
             include: [
-                { model: Asset, as: "asset", attributes: ["uuid", "name", "assetTag", "status"] },
+                { model: Asset, as: "asset", attributes: ["uuid", "name", "asset_tag", "status"] },
                 { model: User, as: "admin", attributes: ["uuid", "name"] }
             ]
         });
@@ -348,19 +348,19 @@ export const reportLost = async (req, res) => {
         }
 
         // Store previous holder
-        const previousHolderId = asset.currentHolderId;
+        const previousHolderId = asset.current_holder_id;
 
         // Update asset status (keep holder info for tracking)
         await asset.update({ status: transition.newStatus }, { transaction: t });
 
         // Create transaction record
         const transaction = await Transaction.create({
-            assetId: asset.id,
-            userId: previousHolderId,
-            adminId: req.user.id,
-            actionType: ActionType.LOST,
-            transactionDate: transactionDate || new Date(),
-            conditionStatus: ConditionStatus.LOST,
+            asset_id: asset.id,
+            user_id: previousHolderId,
+            admin_id: req.user.id,
+            action_type: ActionType.LOST,
+            transaction_date: transactionDate || new Date(),
+            condition_status: ConditionStatus.LOST,
             notes: notes || null
         }, { transaction: t });
 
@@ -369,7 +369,7 @@ export const reportLost = async (req, res) => {
         const result = await Transaction.findOne({
             where: { id: transaction.id },
             include: [
-                { model: Asset, as: "asset", attributes: ["uuid", "name", "assetTag", "status"] },
+                { model: Asset, as: "asset", attributes: ["uuid", "name", "asset_tag", "status"] },
                 { model: User, as: "employee", attributes: ["uuid", "name", "email"] },
                 { model: User, as: "admin", attributes: ["uuid", "name"] }
             ]
@@ -417,17 +417,17 @@ export const reportFound = async (req, res) => {
         // Update asset status and clear holder
         await asset.update({ 
             status: transition.newStatus,
-            currentHolderId: null
+            current_holder_id: null
         }, { transaction: t });
 
         // Create transaction record
         const transaction = await Transaction.create({
-            assetId: asset.id,
-            userId: null,
-            adminId: req.user.id,
-            actionType: ActionType.FOUND,
-            transactionDate: transactionDate || new Date(),
-            conditionStatus: ConditionStatus.GOOD,
+            asset_id: asset.id,
+            user_id: null,
+            admin_id: req.user.id,
+            action_type: ActionType.FOUND,
+            transaction_date: transactionDate || new Date(),
+            condition_status: ConditionStatus.GOOD,
             notes: notes || "Asset recovered"
         }, { transaction: t });
 
@@ -436,7 +436,7 @@ export const reportFound = async (req, res) => {
         const result = await Transaction.findOne({
             where: { id: transaction.id },
             include: [
-                { model: Asset, as: "asset", attributes: ["uuid", "name", "assetTag", "status"] },
+                { model: Asset, as: "asset", attributes: ["uuid", "name", "asset_tag", "status"] },
                 { model: User, as: "admin", attributes: ["uuid", "name"] }
             ]
         });
@@ -483,17 +483,17 @@ export const disposeAsset = async (req, res) => {
         // Update asset status and clear holder
         await asset.update({ 
             status: transition.newStatus,
-            currentHolderId: null
+            current_holder_id: null
         }, { transaction: t });
 
         // Create transaction record
         const transaction = await Transaction.create({
-            assetId: asset.id,
-            userId: null,
-            adminId: req.user.id,
-            actionType: ActionType.DISPOSE,
-            transactionDate: transactionDate || new Date(),
-            conditionStatus: null,
+            asset_id: asset.id,
+            user_id: null,
+            admin_id: req.user.id,
+            action_type: ActionType.DISPOSE,
+            transaction_date: transactionDate || new Date(),
+            condition_status: null,
             notes: notes || null
         }, { transaction: t });
 
@@ -502,7 +502,7 @@ export const disposeAsset = async (req, res) => {
         const result = await Transaction.findOne({
             where: { id: transaction.id },
             include: [
-                { model: Asset, as: "asset", attributes: ["uuid", "name", "assetTag", "status"] },
+                { model: Asset, as: "asset", attributes: ["uuid", "name", "asset_tag", "status"] },
                 { model: User, as: "admin", attributes: ["uuid", "name"] }
             ]
         });
@@ -538,16 +538,16 @@ export const getAllTransactions = async (req, res) => {
         const whereClause = {};
 
         if (actionType && Object.values(ActionType).includes(actionType)) {
-            whereClause.actionType = actionType;
+            whereClause.action_type = actionType;
         }
 
         if (startDate || endDate) {
-            whereClause.transactionDate = {};
+            whereClause.transaction_date = {};
             if (startDate) {
-                whereClause.transactionDate[Op.gte] = new Date(startDate);
+                whereClause.transaction_date[Op.gte] = new Date(startDate);
             }
             if (endDate) {
-                whereClause.transactionDate[Op.lte] = new Date(endDate);
+                whereClause.transaction_date[Op.lte] = new Date(endDate);
             }
         }
 
@@ -555,7 +555,7 @@ export const getAllTransactions = async (req, res) => {
         const assetInclude = {
             model: Asset,
             as: "asset",
-            attributes: ["uuid", "name", "assetTag", "serialNumber", "status"],
+            attributes: ["uuid", "name", "asset_tag", "serial_number", "status"],
             include: [
                 { model: Category, as: "category", attributes: ["uuid", "name"] }
             ]
@@ -565,8 +565,8 @@ export const getAllTransactions = async (req, res) => {
             assetInclude.where = {
                 [Op.or]: [
                     { name: { [Op.like]: `%${search}%` } },
-                    { assetTag: { [Op.like]: `%${search}%` } },
-                    { serialNumber: { [Op.like]: `%${search}%` } }
+                    { asset_tag: { [Op.like]: `%${search}%` } },
+                    { serial_number: { [Op.like]: `%${search}%` } }
                 ]
             };
         }
@@ -587,7 +587,7 @@ export const getAllTransactions = async (req, res) => {
                     attributes: ["uuid", "name"] 
                 }
             ],
-            order: [["transactionDate", "DESC"]],
+            order: [["transaction_date", "DESC"]],
             limit,
             offset,
             distinct: true
@@ -615,7 +615,7 @@ export const getTransactionById = async (req, res) => {
                 { 
                     model: Asset, 
                     as: "asset", 
-                    attributes: ["uuid", "name", "assetTag", "serialNumber", "status"],
+                    attributes: ["uuid", "name", "asset_tag", "serial_number", "status"],
                     include: [
                         { model: Category, as: "category", attributes: ["uuid", "name"] },
                         { model: Location, as: "location", attributes: ["uuid", "name"] }

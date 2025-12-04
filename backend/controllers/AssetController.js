@@ -27,7 +27,7 @@ export const getAllAssets = async (req, res) => {
         const endDate = req.query.endDate || "";
         
         // Sorting
-        const sortBy = req.query.sortBy || "createdAt";
+        const sortBy = req.query.sortBy || "created_at";
         const order = req.query.order?.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
         // Build where clause
@@ -37,8 +37,8 @@ export const getAllAssets = async (req, res) => {
         if (search) {
             whereClause[Op.or] = [
                 { name: { [Op.like]: `%${search}%` } },
-                { assetTag: { [Op.like]: `%${search}%` } },
-                { serialNumber: { [Op.like]: `%${search}%` } }
+                { asset_tag: { [Op.like]: `%${search}%` } },
+                { serial_number: { [Op.like]: `%${search}%` } }
             ];
         }
 
@@ -49,12 +49,12 @@ export const getAllAssets = async (req, res) => {
 
         // Date range filter (purchase date)
         if (startDate || endDate) {
-            whereClause.purchaseDate = {};
+            whereClause.purchase_date = {};
             if (startDate) {
-                whereClause.purchaseDate[Op.gte] = new Date(startDate);
+                whereClause.purchase_date[Op.gte] = new Date(startDate);
             }
             if (endDate) {
-                whereClause.purchaseDate[Op.lte] = new Date(endDate);
+                whereClause.purchase_date[Op.lte] = new Date(endDate);
             }
         }
 
@@ -88,8 +88,8 @@ export const getAllAssets = async (req, res) => {
         ];
 
         // Valid sort fields
-        const validSortFields = ["name", "assetTag", "serialNumber", "status", "purchaseDate", "price", "createdAt", "updatedAt"];
-        const sortField = validSortFields.includes(sortBy) ? sortBy : "createdAt";
+        const validSortFields = ["name", "asset_tag", "serial_number", "status", "purchase_date", "price", "created_at", "updated_at"];
+        const sortField = validSortFields.includes(sortBy) ? sortBy : "created_at";
 
         const { count, rows } = await Asset.findAndCountAll({
             where: whereClause,
@@ -104,10 +104,10 @@ export const getAllAssets = async (req, res) => {
         const assets = rows.map(asset => ({
             uuid: asset.uuid,
             name: asset.name,
-            assetTag: asset.assetTag,
-            serialNumber: asset.serialNumber,
+            asset_tag: asset.asset_tag,
+            serial_number: asset.serial_number,
             status: asset.status,
-            purchaseDate: asset.purchaseDate,
+            purchase_date: asset.purchase_date,
             price: asset.price,
             category: asset.category ? {
                 uuid: asset.category.uuid,
@@ -122,8 +122,8 @@ export const getAllAssets = async (req, res) => {
                 name: asset.holder.name,
                 department: asset.holder.department
             } : null,
-            createdAt: asset.createdAt,
-            updatedAt: asset.updatedAt
+            created_at: asset.created_at,
+            updated_at: asset.updated_at
         }));
 
         return successResponse(res, {
@@ -153,8 +153,8 @@ export const searchAssets = async (req, res) => {
         const whereClause = {
             [Op.or]: [
                 { name: { [Op.like]: `%${query}%` } },
-                { assetTag: { [Op.like]: `%${query}%` } },
-                { serialNumber: { [Op.like]: `%${query}%` } }
+                { asset_tag: { [Op.like]: `%${query}%` } },
+                { serial_number: { [Op.like]: `%${query}%` } }
             ]
         };
 
@@ -183,7 +183,7 @@ export const searchAssets = async (req, res) => {
                     required: false
                 }
             ],
-            attributes: ["uuid", "name", "assetTag", "serialNumber", "status"],
+            attributes: ["uuid", "name", "asset_tag", "serial_number", "status"],
             limit,
             order: [["name", "ASC"]]
         });
@@ -247,7 +247,7 @@ export const getAssetHistory = async (req, res) => {
         // First, verify asset exists
         const asset = await Asset.findOne({
             where: { uuid: req.params.id },
-            attributes: ["id", "uuid", "name", "assetTag"]
+            attributes: ["id", "uuid", "name", "asset_tag"]
         });
 
         if (!asset) {
@@ -256,7 +256,7 @@ export const getAssetHistory = async (req, res) => {
 
         // Get transaction history
         const { count, rows } = await Transaction.findAndCountAll({
-            where: { assetId: asset.id },
+            where: { asset_id: asset.id },
             include: [
                 {
                     model: User,
@@ -269,16 +269,16 @@ export const getAssetHistory = async (req, res) => {
                     attributes: ["uuid", "name"]
                 }
             ],
-            order: [["transactionDate", "DESC"]],
+            order: [["transaction_date", "DESC"]],
             limit,
             offset
         });
 
         const history = rows.map(tx => ({
             uuid: tx.uuid,
-            actionType: tx.actionType,
-            transactionDate: tx.transactionDate,
-            conditionStatus: tx.conditionStatus,
+            action_type: tx.action_type,
+            transaction_date: tx.transaction_date,
+            condition_status: tx.condition_status,
             notes: tx.notes,
             employee: tx.employee ? {
                 uuid: tx.employee.uuid,
@@ -289,14 +289,14 @@ export const getAssetHistory = async (req, res) => {
                 uuid: tx.admin.uuid,
                 name: tx.admin.name
             } : null,
-            createdAt: tx.createdAt
+            created_at: tx.created_at
         }));
 
         return successResponse(res, {
             asset: {
                 uuid: asset.uuid,
                 name: asset.name,
-                assetTag: asset.assetTag
+                asset_tag: asset.asset_tag
             },
             history,
             pagination: paginationMeta(count, page, limit)
@@ -328,7 +328,7 @@ export const createAsset = async (req, res) => {
         }
 
         // Check serial number uniqueness
-        const existingSerial = await Asset.findOne({ where: { serialNumber } });
+        const existingSerial = await Asset.findOne({ where: { serial_number: serialNumber } });
         if (existingSerial) {
             return errorResponse(res, "Serial number already exists", 400, ErrorCodes.DUPLICATE_ENTRY);
         }
@@ -340,7 +340,7 @@ export const createAsset = async (req, res) => {
             finalAssetTag = await generateAssetTag(category.name);
         } else {
             // Check asset tag uniqueness
-            const existingTag = await Asset.findOne({ where: { assetTag: assetTag.trim() } });
+            const existingTag = await Asset.findOne({ where: { asset_tag: assetTag.trim() } });
             if (existingTag) {
                 return errorResponse(res, "Asset tag already exists", 400, ErrorCodes.DUPLICATE_ENTRY);
             }
@@ -350,15 +350,15 @@ export const createAsset = async (req, res) => {
         // Create asset
         const asset = await Asset.create({
             name: name.trim(),
-            assetTag: finalAssetTag,
-            serialNumber: serialNumber.trim(),
-            categoryId: category.id,
-            locationId: location.id,
-            purchaseDate: new Date(purchaseDate),
+            asset_tag: finalAssetTag,
+            serial_number: serialNumber.trim(),
+            category_id: category.id,
+            location_id: location.id,
+            purchase_date: new Date(purchaseDate),
             price: price || 0,
             specifications: specifications || null,
             status: "available",
-            currentHolderId: null
+            current_holder_id: null
         });
 
         // Fetch created asset with relations
@@ -395,36 +395,36 @@ export const updateAsset = async (req, res) => {
         const updateData = {};
 
         if (name) updateData.name = name.trim();
-        if (purchaseDate) updateData.purchaseDate = new Date(purchaseDate);
+        if (purchaseDate) updateData.purchase_date = new Date(purchaseDate);
         if (price !== undefined) updateData.price = price;
         if (specifications !== undefined) updateData.specifications = specifications;
 
         // Validate and update asset tag if provided
-        if (assetTag && assetTag.trim() !== asset.assetTag) {
+        if (assetTag && assetTag.trim() !== asset.asset_tag) {
             const existingTag = await Asset.findOne({
                 where: {
-                    assetTag: assetTag.trim(),
+                    asset_tag: assetTag.trim(),
                     id: { [Op.ne]: asset.id }
                 }
             });
             if (existingTag) {
                 return errorResponse(res, "Asset tag already exists", 400, ErrorCodes.DUPLICATE_ENTRY);
             }
-            updateData.assetTag = assetTag.trim();
+            updateData.asset_tag = assetTag.trim();
         }
 
         // Validate and update serial number if provided
-        if (serialNumber && serialNumber.trim() !== asset.serialNumber) {
+        if (serialNumber && serialNumber.trim() !== asset.serial_number) {
             const existingSerial = await Asset.findOne({
                 where: {
-                    serialNumber: serialNumber.trim(),
+                    serial_number: serialNumber.trim(),
                     id: { [Op.ne]: asset.id }
                 }
             });
             if (existingSerial) {
                 return errorResponse(res, "Serial number already exists", 400, ErrorCodes.DUPLICATE_ENTRY);
             }
-            updateData.serialNumber = serialNumber.trim();
+            updateData.serial_number = serialNumber.trim();
         }
 
         // Validate and update category if provided
@@ -433,7 +433,7 @@ export const updateAsset = async (req, res) => {
             if (!category) {
                 return errorResponse(res, "Category not found", 404, ErrorCodes.NOT_FOUND);
             }
-            updateData.categoryId = category.id;
+            updateData.category_id = category.id;
         }
 
         // Validate and update location if provided
@@ -442,7 +442,7 @@ export const updateAsset = async (req, res) => {
             if (!location) {
                 return errorResponse(res, "Location not found", 404, ErrorCodes.NOT_FOUND);
             }
-            updateData.locationId = location.id;
+            updateData.location_id = location.id;
         }
 
         // Update asset
@@ -492,7 +492,7 @@ export const deleteAsset = async (req, res) => {
 
         if (forceDelete) {
             // Check for transaction history
-            const transactionCount = await Transaction.count({ where: { assetId: asset.id } });
+            const transactionCount = await Transaction.count({ where: { asset_id: asset.id } });
             
             if (transactionCount > 0) {
                 return errorResponse(
@@ -540,8 +540,8 @@ export const getAvailableAssets = async (req, res) => {
                 {
                     [Op.or]: [
                         { name: { [Op.like]: `%${search}%` } },
-                        { assetTag: { [Op.like]: `%${search}%` } },
-                        { serialNumber: { [Op.like]: `%${search}%` } }
+                        { asset_tag: { [Op.like]: `%${search}%` } },
+                        { serial_number: { [Op.like]: `%${search}%` } }
                     ]
                 }
             ];
@@ -553,7 +553,7 @@ export const getAvailableAssets = async (req, res) => {
                 { model: Category, as: "category", attributes: ["uuid", "name"] },
                 { model: Location, as: "location", attributes: ["uuid", "name"] }
             ],
-            attributes: ["uuid", "name", "assetTag", "serialNumber"],
+            attributes: ["uuid", "name", "asset_tag", "serial_number"],
             order: [["name", "ASC"]],
             limit
         });
@@ -583,8 +583,8 @@ export const getAssignedAssets = async (req, res) => {
                 {
                     [Op.or]: [
                         { name: { [Op.like]: `%${search}%` } },
-                        { assetTag: { [Op.like]: `%${search}%` } },
-                        { serialNumber: { [Op.like]: `%${search}%` } }
+                        { asset_tag: { [Op.like]: `%${search}%` } },
+                        { serial_number: { [Op.like]: `%${search}%` } }
                     ]
                 }
             ];
@@ -597,7 +597,7 @@ export const getAssignedAssets = async (req, res) => {
                 { model: Location, as: "location", attributes: ["uuid", "name"] },
                 { model: User, as: "holder", attributes: ["uuid", "name", "email", "department"] }
             ],
-            attributes: ["uuid", "name", "assetTag", "serialNumber"],
+            attributes: ["uuid", "name", "asset_tag", "serial_number"],
             order: [["name", "ASC"]],
             limit
         });

@@ -14,7 +14,7 @@ import SummaryCard from '../components/dashboard/SummaryCard';
 import RecentTransactions from '../components/dashboard/RecentTransactions';
 import Spinner from '../components/common/Spinner';
 import ErrorState from '../components/common/ErrorState';
-import { formatCurrency } from '../utils/export';
+import { formatCurrencyShort } from '../utils/export';
 
 const Dashboard = () => {
     const [summary, setSummary] = useState(null);
@@ -116,7 +116,7 @@ const Dashboard = () => {
                 />
                 <SummaryCard
                     title="Total Value"
-                    value={formatCurrency(summary?.totalValue || 0)}
+                    value={formatCurrencyShort(summary?.totalValue || 0)}
                     icon={HiCurrencyDollar}
                     color="purple"
                 />

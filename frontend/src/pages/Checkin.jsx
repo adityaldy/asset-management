@@ -27,7 +27,7 @@ const Checkin = () => {
             try {
                 // Fetch checked out assets
                 const res = await api.get('/assets?status=checked_out&limit=100');
-                setAssets(res.data.data || []);
+                setAssets(res.data.data?.assets || []);
             } catch (err) {
                 toast.error('Failed to load assets');
             } finally {
@@ -41,12 +41,12 @@ const Checkin = () => {
     const filteredAssets = assets.filter(asset => 
         asset.name.toLowerCase().includes(assetSearch.toLowerCase()) ||
         asset.asset_tag.toLowerCase().includes(assetSearch.toLowerCase()) ||
-        (asset.currentHolder?.name || '').toLowerCase().includes(assetSearch.toLowerCase())
+        (asset.holder?.name || '').toLowerCase().includes(assetSearch.toLowerCase())
     );
 
     const handleAssetSelect = (asset) => {
         setSelectedAsset(asset);
-        setFormData(prev => ({ ...prev, asset_id: asset.id }));
+        setFormData(prev => ({ ...prev, asset_id: asset.uuid }));
         setAssetSearch('');
     };
 
@@ -61,8 +61,8 @@ const Checkin = () => {
         setSubmitting(true);
         try {
             await api.post('/transactions/checkin', {
-                asset_id: formData.asset_id,
-                condition: formData.condition,
+                assetId: formData.asset_id,
+                conditionStatus: formData.condition,
                 notes: formData.notes
             });
             toast.success('Asset checked in successfully');
@@ -127,10 +127,10 @@ const Checkin = () => {
                                         Remove
                                     </button>
                                 </div>
-                                {selectedAsset.currentHolder && (
+                                {selectedAsset.holder && (
                                     <div className="text-sm text-gray-600 mt-2 pt-2 border-t border-green-200">
                                         <span className="font-medium">Currently held by: </span>
-                                        {selectedAsset.currentHolder.name}
+                                        {selectedAsset.holder.name}
                                     </div>
                                 )}
                             </div>
@@ -163,9 +163,9 @@ const Checkin = () => {
                                                         <div>
                                                             <p className="font-medium">{asset.name}</p>
                                                             <p className="text-sm text-gray-500">{asset.asset_tag}</p>
-                                                            {asset.currentHolder && (
+                                                            {asset.holder && (
                                                                 <p className="text-xs text-gray-400 mt-1">
-                                                                    Held by: {asset.currentHolder.name}
+                                                                    Held by: {asset.holder.name}
                                                                 </p>
                                                             )}
                                                         </div>

@@ -69,9 +69,10 @@ const TransactionList = () => {
             if (dateTo) params.append('date_to', dateTo);
             
             const res = await api.get(`/transactions?${params.toString()}`);
-            setTransactions(res.data.data || []);
-            setTotalPages(res.data.pagination?.totalPages || 1);
-            setTotalItems(res.data.pagination?.total || 0);
+            const data = res.data.data;
+            setTransactions(data?.transactions || []);
+            setTotalPages(data?.pagination?.total_pages || 1);
+            setTotalItems(data?.pagination?.total_records || 0);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load transactions');
         } finally {
@@ -85,13 +86,12 @@ const TransactionList = () => {
 
     const handleExport = () => {
         const exportData = transactions.map(tx => ({
-            'Date': formatDateTime(tx.createdAt),
+            'Date': formatDateTime(tx.transaction_date || tx.created_at),
             'Asset': tx.asset?.name || '-',
             'Asset Tag': tx.asset?.asset_tag || '-',
-            'Action': ACTION_LABELS[tx.action] || tx.action,
-            'From': tx.from_user?.name || '-',
-            'To': tx.to_user?.name || '-',
-            'Performed By': tx.performed_by?.name || '-',
+            'Action': ACTION_LABELS[tx.action_type] || tx.action_type,
+            'Employee': tx.employee?.name || '-',
+            'Performed By': tx.admin?.name || '-',
             'Notes': tx.notes || '-'
         }));
         exportToCSV(exportData, 'transactions');
@@ -252,14 +252,14 @@ const TransactionList = () => {
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {transactions.map((tx) => {
-                                            const Icon = getActionIcon(tx.action);
-                                            const colorClass = getActionColor(tx.action);
+                                            const Icon = getActionIcon(tx.action_type);
+                                            const colorClass = getActionColor(tx.action_type);
                                             
                                             return (
                                                 <tr key={tx.id} className="hover:bg-gray-50">
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className="text-sm text-gray-900">
-                                                            {formatDateTime(tx.createdAt)}
+                                                            {formatDateTime(tx.transaction_date || tx.created_at)}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -281,23 +281,23 @@ const TransactionList = () => {
                                                                 <Icon className="w-4 h-4" />
                                                             </div>
                                                             <span className="text-sm font-medium">
-                                                                {ACTION_LABELS[tx.action] || tx.action}
+                                                                {ACTION_LABELS[tx.action_type] || tx.action_type}
                                                             </span>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className="text-sm text-gray-900">
-                                                            {tx.from_user?.name || '-'}
+                                                            {tx.employee?.name || '-'}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className="text-sm text-gray-900">
-                                                            {tx.to_user?.name || '-'}
+                                                            {tx.employee?.name || '-'}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <span className="text-sm text-gray-900">
-                                                            {tx.performed_by?.name || '-'}
+                                                            {tx.admin?.name || '-'}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">

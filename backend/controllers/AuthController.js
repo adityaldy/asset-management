@@ -62,7 +62,6 @@ export const register = async (req, res) => {
 
         return successResponse(
             res,
-            'User berhasil didaftarkan',
             {
                 uuid: newUser.uuid,
                 name: newUser.name,
@@ -70,6 +69,7 @@ export const register = async (req, res) => {
                 role: newUser.role,
                 department: newUser.department
             },
+            'User berhasil didaftarkan',
             201
         );
     } catch (error) {
@@ -170,7 +170,6 @@ export const login = async (req, res) => {
 
         return successResponse(
             res,
-            'Login berhasil',
             {
                 user: {
                     uuid: user.uuid,
@@ -180,7 +179,8 @@ export const login = async (req, res) => {
                     department: user.department
                 },
                 accessToken
-            }
+            },
+            'Login berhasil'
         );
     } catch (error) {
         console.error('Login error:', error);
@@ -246,8 +246,8 @@ export const refreshToken = async (req, res) => {
 
             return successResponse(
                 res,
-                'Token berhasil diperbarui',
-                { accessToken: newAccessToken }
+                { accessToken: newAccessToken },
+                'Token berhasil diperbarui'
             );
         });
     } catch (error) {
@@ -270,7 +270,7 @@ export const logout = async (req, res) => {
         const refreshToken = req.cookies.refreshToken;
 
         if (!refreshToken) {
-            return successResponse(res, 'Logout berhasil');
+            return successResponse(res, null, 'Logout berhasil');
         }
 
         // Cari user dengan refresh token ini
@@ -290,7 +290,7 @@ export const logout = async (req, res) => {
             sameSite: 'strict'
         });
 
-        return successResponse(res, 'Logout berhasil');
+        return successResponse(res, null, 'Logout berhasil');
     } catch (error) {
         console.error('Logout error:', error);
         return errorResponse(
@@ -324,8 +324,8 @@ export const getMe = async (req, res) => {
 
         return successResponse(
             res,
-            'Data user berhasil diambil',
-            user
+            user,
+            'Data user berhasil diambil'
         );
     } catch (error) {
         console.error('Get me error:', error);

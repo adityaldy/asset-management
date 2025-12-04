@@ -60,9 +60,10 @@ const Users = () => {
             if (roleFilter) params.append('role', roleFilter);
             
             const res = await api.get(`/users?${params.toString()}`);
-            setUsers(res.data.data || []);
-            setTotalPages(res.data.pagination?.totalPages || 1);
-            setTotalItems(res.data.pagination?.total || 0);
+            const data = res.data.data;
+            setUsers(data?.users || []);
+            setTotalPages(data?.pagination?.total_pages || 1);
+            setTotalItems(data?.pagination?.total_records || 0);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load users');
         } finally {

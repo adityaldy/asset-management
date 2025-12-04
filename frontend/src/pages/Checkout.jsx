@@ -32,8 +32,8 @@ const Checkout = () => {
                     api.get('/assets?status=available&limit=100'),
                     api.get('/users?limit=100')
                 ]);
-                setAssets(assetRes.data.data || []);
-                setUsers(userRes.data.data || []);
+                setAssets(assetRes.data.data?.assets || []);
+                setUsers(userRes.data.data?.users || []);
             } catch (err) {
                 toast.error('Failed to load options');
             } finally {
@@ -56,13 +56,13 @@ const Checkout = () => {
 
     const handleAssetSelect = (asset) => {
         setSelectedAsset(asset);
-        setFormData(prev => ({ ...prev, asset_id: asset.id }));
+        setFormData(prev => ({ ...prev, asset_id: asset.uuid }));
         setAssetSearch('');
     };
 
     const handleUserSelect = (user) => {
         setSelectedUser(user);
-        setFormData(prev => ({ ...prev, to_user_id: user.id }));
+        setFormData(prev => ({ ...prev, to_user_id: user.uuid }));
         setUserSearch('');
     };
 
@@ -82,8 +82,8 @@ const Checkout = () => {
         setSubmitting(true);
         try {
             await api.post('/transactions/checkout', {
-                asset_id: formData.asset_id,
-                to_user_id: formData.to_user_id,
+                assetId: formData.asset_id,
+                userId: formData.to_user_id,
                 notes: formData.notes
             });
             toast.success('Asset checked out successfully');

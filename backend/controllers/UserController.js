@@ -35,7 +35,7 @@ export const getAllUsers = async (req, res) => {
             limit,
             offset,
             order: [["name", "ASC"]],
-            attributes: ["id", "uuid", "name", "email", "role", "department", "createdAt", "updatedAt"]
+            attributes: { exclude: ["password", "refreshToken"] }
         });
 
         return successResponse(res, {
@@ -56,12 +56,12 @@ export const getUserById = async (req, res) => {
     try {
         const user = await User.findOne({
             where: { uuid: req.params.id },
-            attributes: ["id", "uuid", "name", "email", "role", "department", "createdAt", "updatedAt"],
+            attributes: { exclude: ["password", "refreshToken"] },
             include: [
                 {
                     model: Asset,
                     as: "heldAssets",
-                    attributes: ["uuid", "name", "assetTag", "status"]
+                    attributes: ["uuid", "name", "asset_tag", "status"]
                 }
             ]
         });
@@ -270,7 +270,7 @@ export const deleteUser = async (req, res) => {
 
         // Check if user is currently holding any assets
         const heldAssetsCount = await Asset.count({
-            where: { currentHolderId: user.id }
+            where: { current_holder_id: user.id }
         });
 
         if (heldAssetsCount > 0) {
@@ -286,8 +286,8 @@ export const deleteUser = async (req, res) => {
         const transactionCount = await Transaction.count({
             where: {
                 [Op.or]: [
-                    { userId: user.id },
-                    { adminId: user.id }
+                    { user_id: user.id },
+                    { admin_id: user.id }
                 ]
             }
         });
