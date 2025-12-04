@@ -166,112 +166,104 @@ jobs:
     steps:
       - name: Create Test Report Comment
         uses: actions/github-script@v7
+        env:
+          BACKEND_COVERAGE: ${{ needs.backend-test.outputs.coverage }}
+          BACKEND_PASSED: ${{ needs.backend-test.outputs.passed }}
+          BACKEND_FAILED: ${{ needs.backend-test.outputs.failed }}
+          BACKEND_TOTAL: ${{ needs.backend-test.outputs.total }}
+          FRONTEND_COVERAGE: ${{ needs.frontend-test.outputs.coverage }}
+          FRONTEND_PASSED: ${{ needs.frontend-test.outputs.passed }}
+          FRONTEND_FAILED: ${{ needs.frontend-test.outputs.failed }}
+          FRONTEND_TOTAL: ${{ needs.frontend-test.outputs.total }}
         with:
           script: |
-            const backendCoverage = '${{ needs.backend-test.outputs.coverage }}' || '0';
-            const backendPassed = '${{ needs.backend-test.outputs.passed }}' || '0';
-            const backendFailed = '${{ needs.backend-test.outputs.failed }}' || '0';
-            const backendTotal = '${{ needs.backend-test.outputs.total }}' || '0';
+            const { BACKEND_COVERAGE, BACKEND_PASSED, BACKEND_FAILED, BACKEND_TOTAL,
+                    FRONTEND_COVERAGE, FRONTEND_PASSED, FRONTEND_FAILED, FRONTEND_TOTAL } = process.env;
             
-            const frontendCoverage = '${{ needs.frontend-test.outputs.coverage }}' || '0';
-            const frontendPassed = '${{ needs.frontend-test.outputs.passed }}' || '0';
-            const frontendFailed = '${{ needs.frontend-test.outputs.failed }}' || '0';
-            const frontendTotal = '${{ needs.frontend-test.outputs.total }}' || '0';
+            const backendCoverage = BACKEND_COVERAGE || '0';
+            const backendPassed = BACKEND_PASSED || '0';
+            const backendFailed = BACKEND_FAILED || '0';
+            const backendTotal = BACKEND_TOTAL || '0';
+            const frontendCoverage = FRONTEND_COVERAGE || '0';
+            const frontendPassed = FRONTEND_PASSED || '0';
+            const frontendFailed = FRONTEND_FAILED || '0';
+            const frontendTotal = FRONTEND_TOTAL || '0';
             
             const coverageThreshold = 80;
-            
             const getStatusEmoji = (failed) => parseInt(failed) === 0 ? '✅' : '❌';
-            const getCoverageEmoji = (coverage) => parseFloat(coverage) >= coverageThreshold ? '✅' : '⚠️';
-            const getCoverageBar = (coverage) => {
-              const pct = Math.min(100, Math.max(0, parseFloat(coverage) || 0));
+            const getCoverageEmoji = (cov) => parseFloat(cov) >= coverageThreshold ? '✅' : '⚠️';
+            const getCoverageBar = (cov) => {
+              const pct = Math.min(100, Math.max(0, parseFloat(cov) || 0));
               const filled = Math.round(pct / 10);
               return '█'.repeat(filled) + '░'.repeat(10 - filled);
             };
-            
-            const backendStatus = getStatusEmoji(backendFailed);
-            const frontendStatus = getStatusEmoji(frontendFailed);
-            const backendCoverageStatus = getCoverageEmoji(backendCoverage);
-            const frontendCoverageStatus = getCoverageEmoji(frontendCoverage);
             
             const totalPassed = parseInt(backendPassed) + parseInt(frontendPassed);
             const totalFailed = parseInt(backendFailed) + parseInt(frontendFailed);
             const totalTests = parseInt(backendTotal) + parseInt(frontendTotal);
             const overallStatus = totalFailed === 0 ? '✅ All Tests Passed!' : '❌ Some Tests Failed';
             
-            const body = `## 🧪 Test Results Report
-
-### Overall Status: ${overallStatus}
-
----
-
-### 🔧 Backend Tests ${backendStatus}
-
-| Metric | Value |
-|--------|-------|
-| **Tests** | ${backendPassed}/${backendTotal} passed |
-| **Failed** | ${backendFailed} |
-| **Coverage** | ${backendCoverageStatus} ${backendCoverage}% |
-| **Progress** | \`${getCoverageBar(backendCoverage)}\` |
-
----
-
-### 🎨 Frontend Tests ${frontendStatus}
-
-| Metric | Value |
-|--------|-------|
-| **Tests** | ${frontendPassed}/${frontendTotal} passed |
-| **Failed** | ${frontendFailed} |
-| **Coverage** | ${frontendCoverageStatus} ${frontendCoverage}% |
-| **Progress** | \`${getCoverageBar(frontendCoverage)}\` |
-
----
-
-### 📊 Summary
-
-| Category | Passed | Failed | Total | Coverage |
-|----------|--------|--------|-------|----------|
-| Backend | ${backendPassed} | ${backendFailed} | ${backendTotal} | ${backendCoverage}% |
-| Frontend | ${frontendPassed} | ${frontendFailed} | ${frontendTotal} | ${frontendCoverage}% |
-| **Total** | **${totalPassed}** | **${totalFailed}** | **${totalTests}** | - |
-
----
-
-### 📋 Coverage Threshold: ${coverageThreshold}%
-
-${parseFloat(backendCoverage) < coverageThreshold || parseFloat(frontendCoverage) < coverageThreshold ? 
-  '⚠️ **Warning:** Some modules are below the coverage threshold. Please add more tests before merging.' : 
-  '✅ **Great job!** All coverage thresholds are met.'}
-
----
-
-<details>
-<summary>ℹ️ How to improve coverage</summary>
-
-1. Run tests locally: \`npm run test:coverage\`
-2. Check the coverage report in \`coverage/lcov-report/index.html\`
-3. Add tests for uncovered lines/branches
-4. Focus on critical business logic first
-
-</details>
-
----
-*🤖 This comment was automatically generated by GitHub Actions*
-*Run ID: [${context.runId}](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})*`;
-
-            // Find existing comment
+            const warningMsg = (parseFloat(backendCoverage) < coverageThreshold || parseFloat(frontendCoverage) < coverageThreshold)
+              ? '⚠️ **Warning:** Some modules are below the coverage threshold.'
+              : '✅ **Great job!** All coverage thresholds are met.';
+            
+            const body = [
+              '## 🧪 Test Results Report',
+              '',
+              `### Overall Status: ${overallStatus}`,
+              '',
+              '---',
+              '',
+              `### 🔧 Backend Tests ${getStatusEmoji(backendFailed)}`,
+              '',
+              '| Metric | Value |',
+              '|--------|-------|',
+              `| **Tests** | ${backendPassed}/${backendTotal} passed |`,
+              `| **Failed** | ${backendFailed} |`,
+              `| **Coverage** | ${getCoverageEmoji(backendCoverage)} ${backendCoverage}% |`,
+              `| **Progress** | \`${getCoverageBar(backendCoverage)}\` |`,
+              '',
+              '---',
+              '',
+              `### 🎨 Frontend Tests ${getStatusEmoji(frontendFailed)}`,
+              '',
+              '| Metric | Value |',
+              '|--------|-------|',
+              `| **Tests** | ${frontendPassed}/${frontendTotal} passed |`,
+              `| **Failed** | ${frontendFailed} |`,
+              `| **Coverage** | ${getCoverageEmoji(frontendCoverage)} ${frontendCoverage}% |`,
+              `| **Progress** | \`${getCoverageBar(frontendCoverage)}\` |`,
+              '',
+              '---',
+              '',
+              '### 📊 Summary',
+              '',
+              '| Category | Passed | Failed | Total | Coverage |',
+              '|----------|--------|--------|-------|----------|',
+              `| Backend | ${backendPassed} | ${backendFailed} | ${backendTotal} | ${backendCoverage}% |`,
+              `| Frontend | ${frontendPassed} | ${frontendFailed} | ${frontendTotal} | ${frontendCoverage}% |`,
+              `| **Total** | **${totalPassed}** | **${totalFailed}** | **${totalTests}** | - |`,
+              '',
+              '---',
+              '',
+              `### 📋 Coverage Threshold: ${coverageThreshold}%`,
+              '',
+              warningMsg,
+              '',
+              '---',
+              '',
+              '*🤖 Generated by GitHub Actions*'
+            ].join('\n');
+            
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number
             });
             
-            const botComment = comments.find(comment => 
-              comment.user.type === 'Bot' && 
-              comment.body.includes('🧪 Test Results Report')
-            );
+            const botComment = comments.find(c => c.user.type === 'Bot' && c.body.includes('Test Results Report'));
             
             if (botComment) {
-              // Update existing comment
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -279,7 +271,6 @@ ${parseFloat(backendCoverage) < coverageThreshold || parseFloat(frontendCoverage
                 body: body
               });
             } else {
-              // Create new comment
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
