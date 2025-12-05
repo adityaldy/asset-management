@@ -53,11 +53,42 @@ export const processQuery = async (req, res) => {
                         raw: true
                     });
 
+                    // Process answer template with query results
+                    let formattedAnswer = aiResponse.answer || aiResponse.explanation || "Berikut hasilnya:";
+                    
+                    if (results.length > 0) {
+                        const firstRow = results[0];
+                        // Replace placeholders like {{columnName}} with actual values
+                        for (const [key, value] of Object.entries(firstRow)) {
+                            const placeholder = new RegExp(`\\{\\{${key}\\}\\}`, 'gi');
+                            let displayValue = value;
+                            
+                            // Format numbers as currency if it looks like price
+                            if (typeof value === 'number' || (typeof value === 'string' && !isNaN(value))) {
+                                const numValue = parseFloat(value);
+                                if (key.toLowerCase().includes('price') || key.toLowerCase().includes('harga') || key.toLowerCase().includes('nilai')) {
+                                    displayValue = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(numValue);
+                                } else {
+                                    displayValue = new Intl.NumberFormat('id-ID').format(numValue);
+                                }
+                            }
+                            
+                            formattedAnswer = formattedAnswer.replace(placeholder, displayValue);
+                        }
+                        // Also replace {{hasil}} with first numeric value for simple count queries
+                        if (formattedAnswer.includes('{{hasil}}')) {
+                            const firstValue = Object.values(firstRow)[0];
+                            formattedAnswer = formattedAnswer.replace(/\{\{hasil\}\}/gi, 
+                                typeof firstValue === 'number' ? new Intl.NumberFormat('id-ID').format(firstValue) : firstValue
+                            );
+                        }
+                    }
+
                     return res.status(200).json({
                         success: true,
                         type: "query",
                         data: {
-                            explanation: aiResponse.explanation,
+                            message: formattedAnswer,
                             sql: aiResponse.sql,
                             results: results,
                             rowCount: results.length

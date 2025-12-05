@@ -44,65 +44,14 @@ const ChatMessage = ({ message }) => {
     };
 
     const renderQueryResults = (data) => {
-        const { results, rowCount, sql, explanation } = data;
-
-        if (!results || results.length === 0) {
-            return (
-                <div className="text-gray-500 italic">
-                    Tidak ada data yang ditemukan.
-                </div>
-            );
-        }
-
-        // Get column headers from first result
-        const columns = Object.keys(results[0]);
+        const { message, sql, results, rowCount } = data;
 
         return (
-            <div className="space-y-3">
-                {/* Explanation */}
-                {explanation && (
-                    <p className="text-sm text-gray-700">{explanation}</p>
-                )}
-
-                {/* Results count */}
-                <p className="text-xs text-gray-500">
-                    Menampilkan {rowCount} hasil
+            <div className="space-y-2">
+                {/* AI Answer Message */}
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                    {message || "Berikut hasilnya:"}
                 </p>
-
-                {/* Results Table */}
-                <div className="overflow-x-auto max-h-60 overflow-y-auto">
-                    <table className="min-w-full text-xs border border-gray-200 rounded">
-                        <thead className="bg-gray-100 sticky top-0">
-                            <tr>
-                                {columns.map((col) => (
-                                    <th 
-                                        key={col}
-                                        className="px-2 py-1 text-left font-semibold text-gray-700 border-b"
-                                    >
-                                        {col.replace(/_/g, ' ')}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {results.map((row, idx) => (
-                                <tr 
-                                    key={idx}
-                                    className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
-                                >
-                                    {columns.map((col) => (
-                                        <td 
-                                            key={col}
-                                            className="px-2 py-1 border-b border-gray-100 whitespace-nowrap"
-                                        >
-                                            {renderValue(row[col], col)}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
 
                 {/* SQL Query (collapsible) */}
                 {sql && (
